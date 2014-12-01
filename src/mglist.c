@@ -586,52 +586,52 @@ static inline void mglist_splice_tail_init(struct mglist_head *list,
  * You lose the ability to access the tail in O(1).
  */
 
-#define HMG_LIST_HEAD_INIT { .first = NULL }
-#define HMG_LIST_HEAD(name) struct hmglist_head name = {  .first = NULL }
-#define INIT_HMG_LIST_HEAD(ptr) ((ptr)->first = NULL)
-static inline void INIT_HMG_LIST_NODE(struct hmglist_node *h)
+#define MG_HLIST_HEAD_INIT { .first = NULL }
+#define MG_HLIST_HEAD(name) struct mghlist_head name = {  .first = NULL }
+#define INIT_MG_HLIST_HEAD(ptr) ((ptr)->first = NULL)
+static inline void INIT_MG_HLIST_NODE(struct mghlist_node *h)
 {
 	h->next = NULL;
 	h->pprev = NULL;
 }
 
-static inline int hmglist_unhashed(const struct hmglist_node *h)
+static inline int mghlist_unhashed(const struct mghlist_node *h)
 {
 	return !h->pprev;
 }
 
-static inline int hmglist_empty(const struct hmglist_head *h)
+static inline int mghlist_empty(const struct mghlist_head *h)
 {
 	return !h->first;
 }
 
-static inline void __hmglist_del(struct hmglist_node *n)
+static inline void __mghlist_del(struct mghlist_node *n)
 {
-	struct hmglist_node *next = n->next;
-	struct hmglist_node **pprev = n->pprev;
+	struct mghlist_node *next = n->next;
+	struct mghlist_node **pprev = n->pprev;
 	*pprev = next;
 	if (next)
 		next->pprev = pprev;
 }
 
-static inline void hmglist_del(struct hmglist_node *n)
+static inline void mghlist_del(struct mghlist_node *n)
 {
-	__hmglist_del(n);
+	__mghlist_del(n);
 	n->next = MG_LIST_POISON1;
 	n->pprev = MG_LIST_POISON2;
 }
 
-static inline void hmglist_del_init(struct hmglist_node *n)
+static inline void mghlist_del_init(struct mghlist_node *n)
 {
-	if (!hmglist_unhashed(n)) {
-		__hmglist_del(n);
-		INIT_HMG_LIST_NODE(n);
+	if (!mghlist_unhashed(n)) {
+		__mghlist_del(n);
+		INIT_MG_HLIST_NODE(n);
 	}
 }
 
-static inline void hmglist_add_head(struct hmglist_node *n, struct hmglist_head *h)
+static inline void mghlist_add_head(struct mghlist_node *n, struct mghlist_head *h)
 {
-	struct hmglist_node *first = h->first;
+	struct mghlist_node *first = h->first;
 	n->next = first;
 	if (first)
 		first->pprev = &n->next;
@@ -640,8 +640,8 @@ static inline void hmglist_add_head(struct hmglist_node *n, struct hmglist_head 
 }
 
 /* next must be != NULL */
-static inline void hmglist_add_before(struct hmglist_node *n,
-					struct hmglist_node *next)
+static inline void mghlist_add_before(struct mghlist_node *n,
+					struct mghlist_node *next)
 {
 	n->pprev = next->pprev;
 	n->next = next;
@@ -649,8 +649,8 @@ static inline void hmglist_add_before(struct hmglist_node *n,
 	*(n->pprev) = n;
 }
 
-static inline void hmglist_add_after(struct hmglist_node *n,
-					struct hmglist_node *next)
+static inline void mghlist_add_after(struct mghlist_node *n,
+					struct mghlist_node *next)
 {
 	next->next = n->next;
 	n->next = next;
@@ -660,8 +660,8 @@ static inline void hmglist_add_after(struct hmglist_node *n,
 		next->next->pprev  = &next->next;
 }
 
-/* after that we'll appear to be on some hlist and hmglist_del will work */
-static inline void hmglist_add_fake(struct hmglist_node *n)
+/* after that we'll appear to be on some hlist and mghlist_del will work */
+static inline void mghlist_add_fake(struct mghlist_node *n)
 {
 	n->pprev = &n->next;
 }
@@ -670,69 +670,13 @@ static inline void hmglist_add_fake(struct hmglist_node *n)
  * Move a list from one list head to another. Fixup the pprev
  * reference of the first entry if it exists.
  */
-static inline void hmglist_move_list(struct hmglist_head *old,
-				   struct hmglist_head *new)
+static inline void mghlist_move_list(struct mghlist_head *old,
+				   struct mghlist_head *new)
 {
 	new->first = old->first;
 	if (new->first)
 		new->first->pprev = &new->first;
 	old->first = NULL;
 }
-
-#define hmglist_entry(ptr, type, member) container_of(ptr,type,member)
-
-#define hmglist_for_each(pos, head) \
-	for (pos = (head)->first; pos ; pos = pos->next)
-
-#define hmglist_for_each_safe(pos, n, head) \
-	for (pos = (head)->first; pos && ({ n = pos->next; 1; }); \
-	     pos = n)
-
-#define hmglist_entry_safe(ptr, type, member) \
-	({ typeof(ptr) ____ptr = (ptr); \
-	   ____ptr ? hmglist_entry(____ptr, type, member) : NULL; \
-	})
-
-/**
- * hmglist_for_each_entry	- iterate over list of given type
- * @pos:	the type * to use as a loop cursor.
- * @head:	the head for your list.
- * @member:	the name of the hmglist_node within the struct.
- */
-#define hmglist_for_each_entry(pos, head, member)				\
-	for (pos = hmglist_entry_safe((head)->first, typeof(*(pos)), member);\
-	     pos;							\
-	     pos = hmglist_entry_safe((pos)->member.next, typeof(*(pos)), member))
-
-/**
- * hmglist_for_each_entry_continue - iterate over a hlist continuing after current point
- * @pos:	the type * to use as a loop cursor.
- * @member:	the name of the hmglist_node within the struct.
- */
-#define hmglist_for_each_entry_continue(pos, member)			\
-	for (pos = hmglist_entry_safe((pos)->member.next, typeof(*(pos)), member);\
-	     pos;							\
-	     pos = hmglist_entry_safe((pos)->member.next, typeof(*(pos)), member))
-
-/**
- * hmglist_for_each_entry_from - iterate over a hlist continuing from current point
- * @pos:	the type * to use as a loop cursor.
- * @member:	the name of the hmglist_node within the struct.
- */
-#define hmglist_for_each_entry_from(pos, member)				\
-	for (; pos;							\
-	     pos = hmglist_entry_safe((pos)->member.next, typeof(*(pos)), member))
-
-/**
- * hmglist_for_each_entry_safe - iterate over list of given type safe against removal of list entry
- * @pos:	the type * to use as a loop cursor.
- * @n:		another &struct hmglist_node to use as temporary storage
- * @head:	the head for your list.
- * @member:	the name of the hmglist_node within the struct.
- */
-#define hmglist_for_each_entry_safe(pos, n, head, member) 		\
-	for (pos = hmglist_entry_safe((head)->first, typeof(*pos), member);\
-	     pos && ({ n = pos->member.next; 1; });			\
-	     pos = hmglist_entry_safe(n, typeof(*pos), member))
 
 #endif

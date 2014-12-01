@@ -373,6 +373,12 @@ extern void mglist_splice_init(struct mglist_head *list,
  * You lose the ability to access the tail in O(1).
  */
 
+
+/*******************************************************************
+
+  哈希链表
+
+*******************************************************************/	
 typedef struct mghlist_node
 {
     struct mghlist_node *next, **pprev;
@@ -387,45 +393,26 @@ typedef struct mghlist_head
 #define MG_HLIST_HEAD_INIT { .first = NULL }
 #define MG_HLIST_HEAD(name) struct mghlist_head name = {  .first = NULL }
 #define INIT_MG_HLIST_HEAD(ptr) ((ptr)->first = NULL)
-static inline void INIT_MG_HLIST_NODE(struct mghlist_node *h)
-{
-	h->next = NULL;
-	h->pprev = NULL;
-}
 
-static inline int mghlist_unhashed(const struct mghlist_node *h)
-{
-	return !h->pprev;
-}
+/*
+ *init mghlist node, 设置h->next 和h->pprev 为NULL
+ */
+extern void INIT_MG_HLIST_NODE(struct mghlist_node *h);
 
-static inline int mghlist_empty(const struct mghlist_head *h)
-{
-	return !h->first;
-}
+/*
+ *
+ *
+ *
+ */
+extern int mghlist_unhashed(const struct mghlist_node *h);
 
-static inline void __mghlist_del(struct mghlist_node *n)
-{
-	struct mghlist_node *next = n->next;
-	struct mghlist_node **pprev = n->pprev;
-	*pprev = next;
-	if (next)
-		next->pprev = pprev;
-}
 
-static inline void mghlist_del(struct mghlist_node *n)
-{
-	__mghlist_del(n);
-	n->next = MG_LIST_POISON1;
-	n->pprev = MG_LIST_POISON2;
-}
+extern int mghlist_empty(const struct mghlist_head *h);
 
-static inline void mghlist_del_init(struct mghlist_node *n)
-{
-	if (!mghlist_unhashed(n)) {
-		__mghlist_del(n);
-		INIT_MG_HLIST_NODE(n);
-	}
-}
+
+extern void mghlist_del(struct mghlist_node *n);
+
+extern void mghlist_del_init(struct mghlist_node *n);
 
 static inline void mghlist_add_head(struct mghlist_node *n, struct mghlist_head *h)
 {
