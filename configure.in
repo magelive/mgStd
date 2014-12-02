@@ -16,7 +16,7 @@ AC_PROG_LIBTOOL
 AC_PROG_RANLIB
 
 # Checks for header files.
-AC_CHECK_HEADERS([stdio.h stdlib.h strings.h string.h stddef.h])
+AC_CHECK_HEADERS([stdio.h stdlib.h strings.h string.h stddef.h stdint.h sys/time.h time.h])
 
 # Checks for typedefs, structures, and compiler characteristics.
 
