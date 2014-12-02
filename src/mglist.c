@@ -1,35 +1,12 @@
-#ifndef _MG_STD_MG_LIST_H
-#define _MG_STD_MG_LIST_H
+#include "./mglist.h"
 
-/*
- * Simple doubly linked list implementation.
- *
- * Some of the internal functions ("__xxx") are useful when
- * manipulating whole lists rather than single entries, as
- * sometimes we already know the next/prev entries and we can
- * generate better code by using them directly rather than
- * using the generic single-entry routines.
- */
-
-#define MG_LIST_HEAD_INIT(name) { &(name), &(name) }
-
-#define MG_LIST_HEAD(name) \
-	struct mglist_head name = MG_LIST_HEAD_INIT(name)
-
-static inline void MG_INIT_LIST_HEAD(struct mglist_head *list)
+void INIT_MG_LIST_HEAD(struct mglist_head *list)
 {
 	list->next = list;
 	list->prev = list;
 }
 
-/*
- * Insert a new entry between two known consecutive entries.
- *
- * This is only for internal list manipulation where we know
- * the prev/next entries already!
- */
-
-static inline void __mglist_add(struct mglist_head *new,
+static void __mglist_add(struct mglist_head *new,
 			      struct mglist_head *prev,
 			      struct mglist_head *next)
 {
@@ -38,83 +15,37 @@ static inline void __mglist_add(struct mglist_head *new,
 	new->prev = prev;
 	prev->next = new;
 }
-#else
-extern void __mglist_add(struct mglist_head *new,
-			      struct mglist_head *prev,
-			      struct mglist_head *next);
-#endif
 
-/**
- * mglist_add - add a new entry
- * @new: new entry to be added
- * @head: list head to add it after
- *
- * Insert a new entry after the specified head.
- * This is good for implementing stacks.
- */
-static inline void mglist_add(struct mglist_head *new, struct mglist_head *head)
+void mglist_add(struct mglist_head *new, struct mglist_head *head)
 {
 	__mglist_add(new, head, head->next);
 }
 
 
-/**
- * mglist_add_tail - add a new entry
- * @new: new entry to be added
- * @head: list head to add it before
- *
- * Insert a new entry before the specified head.
- * This is useful for implementing queues.
- */
-static inline void mglist_add_tail(struct mglist_head *new, struct mglist_head *head)
+void mglist_add_tail(struct mglist_head *new, struct mglist_head *head)
 {
 	__mglist_add(new, head->prev, head);
 }
 
-/*
- * Delete a list entry by making the prev/next entries
- * point to each other.
- *
- * This is only for internal list manipulation where we know
- * the prev/next entries already!
- */
-static inline void __mglist_del(struct mglist_head * prev, struct mglist_head * next)
+void __mglist_del(struct mglist_head * prev, struct mglist_head * next)
 {
 	next->prev = prev;
 	prev->next = next;
 }
 
-/**
- * mglist_del - deletes entry from list.
- * @entry: the element to delete from the list.
- * Note: mglist_empty() on entry does not return true after this, the entry is
- * in an undefined state.
- */
-#ifndef CONFIG_DEBUG_MG_LIST
-static inline void __mglist_del_entry(struct mglist_head *entry)
+void __mglist_del_entry(struct mglist_head *entry)
 {
 	__mglist_del(entry->prev, entry->next);
 }
 
-static inline void mglist_del(struct mglist_head *entry)
+void mglist_del(struct mglist_head *entry)
 {
 	__mglist_del(entry->prev, entry->next);
 	entry->next = MG_LIST_POISON1;
 	entry->prev = MG_LIST_POISON2;
 }
-#else
-extern void __mglist_del_entry(struct mglist_head *entry);
-extern void mglist_del(struct mglist_head *entry);
-#endif
 
-/**
- * mglist_replace - replace old entry by new one
- * @old : the element to be replaced
- * @new : the new element to insert
- *
- * If @old was empty, it will be overwritten.
- */
-static inline void mglist_replace(struct mglist_head *old,
+void mglist_replace(struct mglist_head *old,
 				struct mglist_head *new)
 {
 	new->next = old->next;
@@ -123,18 +54,14 @@ static inline void mglist_replace(struct mglist_head *old,
 	new->prev->next = new;
 }
 
-static inline void mglist_replace_init(struct mglist_head *old,
+void mglist_replace_init(struct mglist_head *old,
 					struct mglist_head *new)
 {
 	mglist_replace(old, new);
 	INIT_MG_LIST_HEAD(old);
 }
 
-/**
- * mglist_del_init - deletes entry from list and reinitialize it.
- * @entry: the element to delete from the list.
- */
-static inline void mglist_del_init(struct mglist_head *entry)
+void mglist_del_init(struct mglist_head *entry)
 {
 	__mglist_del_entry(entry);
 	INIT_MG_LIST_HEAD(entry);
@@ -145,7 +72,7 @@ static inline void mglist_del_init(struct mglist_head *entry)
  * @list: the entry to move
  * @head: the head that will precede our entry
  */
-static inline void mglist_move(struct mglist_head *list, struct mglist_head *head)
+void mglist_move(struct mglist_head *list, struct mglist_head *head)
 {
 	__mglist_del_entry(list);
 	mglist_add(list, head);
@@ -156,7 +83,7 @@ static inline void mglist_move(struct mglist_head *list, struct mglist_head *hea
  * @list: the entry to move
  * @head: the head that will follow our entry
  */
-static inline void mglist_move_tail(struct mglist_head *list,
+void mglist_move_tail(struct mglist_head *list,
 				  struct mglist_head *head)
 {
 	__mglist_del_entry(list);
@@ -168,7 +95,7 @@ static inline void mglist_move_tail(struct mglist_head *list,
  * @list: the entry to test
  * @head: the head of the list
  */
-static inline int mglist_is_last(const struct mglist_head *list,
+int mglist_is_last(const struct mglist_head *list,
 				const struct mglist_head *head)
 {
 	return list->next == head;
@@ -178,7 +105,7 @@ static inline int mglist_is_last(const struct mglist_head *list,
  * mglist_empty - tests whether a list is empty
  * @head: the list to test.
  */
-static inline int mglist_empty(const struct mglist_head *head)
+int mglist_empty(const struct mglist_head *head)
 {
 	return head->next == head;
 }
@@ -196,7 +123,7 @@ static inline int mglist_empty(const struct mglist_head *head)
  * to the list entry is mglist_del_init(). Eg. it cannot be used
  * if another CPU could re-mglist_add() it.
  */
-static inline int mglist_empty_careful(const struct mglist_head *head)
+int mglist_empty_careful(const struct mglist_head *head)
 {
 	struct mglist_head *next = head->next;
 	return (next == head) && (next == head->prev);
@@ -206,7 +133,7 @@ static inline int mglist_empty_careful(const struct mglist_head *head)
  * mglist_rotate_left - rotate the list to the left
  * @head: the head of the list
  */
-static inline void mglist_rotate_left(struct mglist_head *head)
+void mglist_rotate_left(struct mglist_head *head)
 {
 	struct mglist_head *first;
 
@@ -220,12 +147,12 @@ static inline void mglist_rotate_left(struct mglist_head *head)
  * mglist_is_singular - tests whether a list has just one entry.
  * @head: the list to test.
  */
-static inline int mglist_is_singular(const struct mglist_head *head)
+int mglist_is_singular(const struct mglist_head *head)
 {
 	return !mglist_empty(head) && (head->next == head->prev);
 }
 
-static inline void __mglist_cut_position(struct mglist_head *list,
+void __mglist_cut_position(struct mglist_head *list,
 		struct mglist_head *head, struct mglist_head *entry)
 {
 	struct mglist_head *new_first = entry->next;
@@ -251,7 +178,7 @@ static inline void __mglist_cut_position(struct mglist_head *list,
  * losing its data.
  *
  */
-static inline void mglist_cut_position(struct mglist_head *list,
+void mglist_cut_position(struct mglist_head *list,
 		struct mglist_head *head, struct mglist_head *entry)
 {
 	if (mglist_empty(head))
@@ -265,7 +192,7 @@ static inline void mglist_cut_position(struct mglist_head *list,
 		__mglist_cut_position(list, head, entry);
 }
 
-static inline void __mglist_splice(const struct mglist_head *list,
+void __mglist_splice(const struct mglist_head *list,
 				 struct mglist_head *prev,
 				 struct mglist_head *next)
 {
@@ -284,7 +211,7 @@ static inline void __mglist_splice(const struct mglist_head *list,
  * @list: the new list to add.
  * @head: the place to add it in the first list.
  */
-static inline void mglist_splice(const struct mglist_head *list,
+void mglist_splice(const struct mglist_head *list,
 				struct mglist_head *head)
 {
 	if (!mglist_empty(list))
@@ -296,7 +223,7 @@ static inline void mglist_splice(const struct mglist_head *list,
  * @list: the new list to add.
  * @head: the place to add it in the first list.
  */
-static inline void mglist_splice_tail(struct mglist_head *list,
+void mglist_splice_tail(struct mglist_head *list,
 				struct mglist_head *head)
 {
 	if (!mglist_empty(list))
@@ -310,7 +237,7 @@ static inline void mglist_splice_tail(struct mglist_head *list,
  *
  * The list at @list is reinitialised
  */
-static inline void mglist_splice_init(struct mglist_head *list,
+void mglist_splice_init(struct mglist_head *list,
 				    struct mglist_head *head)
 {
 	if (!mglist_empty(list)) {
@@ -327,7 +254,7 @@ static inline void mglist_splice_init(struct mglist_head *list,
  * Each of the lists is a queue.
  * The list at @list is reinitialised
  */
-static inline void mglist_splice_tail_init(struct mglist_head *list,
+void mglist_splice_tail_init(struct mglist_head *list,
 					 struct mglist_head *head)
 {
 	if (!mglist_empty(list)) {
@@ -589,23 +516,23 @@ static inline void mglist_splice_tail_init(struct mglist_head *list,
 #define MG_HLIST_HEAD_INIT { .first = NULL }
 #define MG_HLIST_HEAD(name) struct mghlist_head name = {  .first = NULL }
 #define INIT_MG_HLIST_HEAD(ptr) ((ptr)->first = NULL)
-static inline void INIT_MG_HLIST_NODE(struct mghlist_node *h)
+void INIT_MG_HLIST_NODE(struct mghlist_node *h)
 {
 	h->next = NULL;
 	h->pprev = NULL;
 }
 
-static inline int mghlist_unhashed(const struct mghlist_node *h)
+int mghlist_unhashed(const struct mghlist_node *h)
 {
 	return !h->pprev;
 }
 
-static inline int mghlist_empty(const struct mghlist_head *h)
+int mghlist_empty(const struct mghlist_head *h)
 {
 	return !h->first;
 }
 
-static inline void __mghlist_del(struct mghlist_node *n)
+void __mghlist_del(struct mghlist_node *n)
 {
 	struct mghlist_node *next = n->next;
 	struct mghlist_node **pprev = n->pprev;
@@ -614,14 +541,14 @@ static inline void __mghlist_del(struct mghlist_node *n)
 		next->pprev = pprev;
 }
 
-static inline void mghlist_del(struct mghlist_node *n)
+void mghlist_del(struct mghlist_node *n)
 {
 	__mghlist_del(n);
 	n->next = MG_LIST_POISON1;
 	n->pprev = MG_LIST_POISON2;
 }
 
-static inline void mghlist_del_init(struct mghlist_node *n)
+void mghlist_del_init(struct mghlist_node *n)
 {
 	if (!mghlist_unhashed(n)) {
 		__mghlist_del(n);
@@ -629,7 +556,7 @@ static inline void mghlist_del_init(struct mghlist_node *n)
 	}
 }
 
-static inline void mghlist_add_head(struct mghlist_node *n, struct mghlist_head *h)
+void mghlist_add_head(struct mghlist_node *n, struct mghlist_head *h)
 {
 	struct mghlist_node *first = h->first;
 	n->next = first;
@@ -640,7 +567,7 @@ static inline void mghlist_add_head(struct mghlist_node *n, struct mghlist_head 
 }
 
 /* next must be != NULL */
-static inline void mghlist_add_before(struct mghlist_node *n,
+void mghlist_add_before(struct mghlist_node *n,
 					struct mghlist_node *next)
 {
 	n->pprev = next->pprev;
@@ -649,7 +576,7 @@ static inline void mghlist_add_before(struct mghlist_node *n,
 	*(n->pprev) = n;
 }
 
-static inline void mghlist_add_after(struct mghlist_node *n,
+void mghlist_add_after(struct mghlist_node *n,
 					struct mghlist_node *next)
 {
 	next->next = n->next;
@@ -661,7 +588,7 @@ static inline void mghlist_add_after(struct mghlist_node *n,
 }
 
 /* after that we'll appear to be on some hlist and mghlist_del will work */
-static inline void mghlist_add_fake(struct mghlist_node *n)
+void mghlist_add_fake(struct mghlist_node *n)
 {
 	n->pprev = &n->next;
 }
@@ -670,7 +597,7 @@ static inline void mghlist_add_fake(struct mghlist_node *n)
  * Move a list from one list head to another. Fixup the pprev
  * reference of the first entry if it exists.
  */
-static inline void mghlist_move_list(struct mghlist_head *old,
+void mghlist_move_list(struct mghlist_head *old,
 				   struct mghlist_head *new)
 {
 	new->first = old->first;
@@ -679,4 +606,3 @@ static inline void mghlist_move_list(struct mghlist_head *old,
 	old->first = NULL;
 }
 
-#endif

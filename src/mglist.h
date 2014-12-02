@@ -1,21 +1,29 @@
 #ifndef _MG_STD_MG_LIST_H
 #define _MG_STD_MG_LIST_H
 
+#include <stdio.h>
+#include <stddef.h>
+//#include <stdlib.h>
+
 typedef struct mglist_head
 {
     struct mglist_head *prev;
     struct mglist_head *next;
 }MG_LIST;
 
-#define MG_LIST_POISON1 = NULL;
-#define MG_LIST_POISON2 = NULL;
+#define MG_LIST_POISON1  NULL
+#define MG_LIST_POISON2  NULL
 
 #define MG_LIST_HEAD_INIT(name) { &(name), &(name) }
 
 #define MG_LIST_HEAD(name) \
 	struct mglist_head name = MG_LIST_HEAD_INIT(name)
 
-extern void MG_INIT_LIST_HEAD(struct mglist_head *list);
+
+/*******************************************************/
+
+
+void INIT_MG_LIST_HEAD(struct mglist_head *list);
 
 /*
     在head后面添加new
@@ -114,8 +122,8 @@ extern void mglist_splice_tail(struct mglist_head *list,
 extern void mglist_splice_init(struct mglist_head *list,
 				    struct mglist_head *head);
 
- void mglist_splice_tail_init(struct mglist_head *list,
-					 struct mglist_head *head)
+extern void mglist_splice_tail_init(struct mglist_head *list,
+					 struct mglist_head *head);
 
 /**
  * mglist_entry - get the struct for this entry
@@ -386,8 +394,8 @@ typedef struct mghlist_node
 
 typedef struct mghlist_head
 {
-    struct mghlist_head *first;
-}MG_HLIST_HEAD;
+    struct mghlist_node *first;
+}MG_HLIST;
 
 
 #define MG_HLIST_HEAD_INIT { .first = NULL }
@@ -400,69 +408,56 @@ typedef struct mghlist_head
 extern void INIT_MG_HLIST_NODE(struct mghlist_node *h);
 
 /*
- *
- *
- *
+ *判断一个结点是否已经存在于hash桶中    
  */
 extern int mghlist_unhashed(const struct mghlist_node *h);
 
-
+/*
+ *判断hash桶是否为空
+ */
 extern int mghlist_empty(const struct mghlist_head *h);
 
-
+/*
+ *删除hash桶中node结点，并将node结点尾巴清理掉
+*/
 extern void mghlist_del(struct mghlist_node *n);
 
+/*
+   严格删除node结点，并将node结点尾巴清理掉
+*/
 extern void mghlist_del_init(struct mghlist_node *n);
 
-static inline void mghlist_add_head(struct mghlist_node *n, struct mghlist_head *h)
-{
-	struct mghlist_node *first = h->first;
-	n->next = first;
-	if (first)
-		first->pprev = &n->next;
-	h->first = n;
-	n->pprev = &h->first;
-}
+/*
+   将普通结点n插入到头结点h对应的hash桶的第一个结点的位置
+*/
+extern void mghlist_add_head(struct mghlist_node *n, struct mghlist_head *h);
 
 /* next must be != NULL */
-static inline void mghlist_add_before(struct mghlist_node *n,
-					struct mghlist_node *next)
-{
-	n->pprev = next->pprev;
-	n->next = next;
-	next->pprev = &n->next;
-	*(n->pprev) = n;
-}
+/*
+   //在next结点之前插入结点n，即使next结点是hash桶中的第一个结点也可以  
+ */
+extern void mghlist_add_before(struct mghlist_node *n,
+					struct mghlist_node *next);
+/*
+   //在结点n之后插入结点next 
+ */
+extern void mghlist_add_after(struct mghlist_node *n,
+					struct mghlist_node *next);
 
-static inline void mghlist_add_after(struct mghlist_node *n,
-					struct mghlist_node *next)
-{
-	next->next = n->next;
-	n->next = next;
-	next->pprev = &n->next;
-
-	if(next->next)
-		next->next->pprev  = &next->next;
-}
-
-/* after that we'll appear to be on some hlist and mghlist_del will work */
-static inline void mghlist_add_fake(struct mghlist_node *n)
-{
-	n->pprev = &n->next;
-}
+/* after that we'll appear to be on some mghlist and mghlist_del will work */
+/*
+   假添加，作用?
+ */
+extern void mghlist_add_fake(struct mghlist_node *n);
 
 /*
  * Move a list from one list head to another. Fixup the pprev
  * reference of the first entry if it exists.
  */
-static inline void mghlist_move_list(struct mghlist_head *old,
-				   struct mghlist_head *new)
-{
-	new->first = old->first;
-	if (new->first)
-		new->first->pprev = &new->first;
-	old->first = NULL;
-}
+/*
+ *将old剪切到new中
+ */
+extern void mghlist_move_list(struct mghlist_head *old, struct mghlist_head *new);
 
 #define mghlist_entry(ptr, type, member) container_of(ptr,type,member)
 
