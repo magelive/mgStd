@@ -35,6 +35,17 @@ uint64_t mg_get_tick_time_ms()
     return time/1000;
 }
 
+uint64_t mg_get_tick_time_us()
+{
+    uint64_t time=0;
+    struct timeval now;
+    gettimeofday( &now , NULL );
+
+    time = now.tv_sec;
+    time = time*1000000;
+    time += now.tv_usec;
+    return time;
+}
 
 void mg_get_rand_str(char *s,int number)
 {
@@ -50,12 +61,12 @@ void mg_get_rand_str(char *s,int number)
     }
 }
 
-int get_rand_num(int t1, int t2)
+int mg_get_rand_num(int t1, int t2)
 {
     int max = t1>t2?t1:t2;
     int min = t1<t2?t1:t2;
     int num = 0;
-    srand(mg_get_tick_time_ms());
+    srand(mg_get_tick_time_us());
     num = rand()%(max-min)+min;
     return num;
 }

@@ -6,13 +6,18 @@ libmgStd_HEADERS=mglist.h mgMurmurhash.h mgtime.h mgmd5.h
 libmgStddir=@includedir@/mg
 
 #bin_PROGRAMS=mglist_test
-noinst_PROGRAMS=mglist_test mgMurmurhash_test mgmd5_test
+noinst_PROGRAMS=mglist_test mgMurmurhash_test mgmd5_test mghlist_test
 
 
 mglist_test_DEPENDENCIES=./libmgStd.la
 mglist_test_LDADD=./libmgStd.la
 mglist_test_SOURCES=mglist_test.c
 mglist_test_LDFLAGS=
+
+mghlist_test_DEPENDENCIES=./libmgStd.la
+mghlist_test_LDADD=./libmgStd.la
+mghlist_test_SOURCES=mghlist_test.c
+mghlist_test_LDFLAGS=
 
 mgMurmurhash_test_DEPENDENCIES=./libmgStd.la
 mgMurmurhash_test_LDADD=./libmgStd.la

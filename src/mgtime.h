@@ -12,6 +12,6 @@ uint64_t mg_get_tick_time_ms();
 void mg_get_rand_str(char *s,int number);
 
 //获取t1,t2之间的随机数
-int get_rand_num(int t1, int t2);
+int mg_get_rand_num(int t1, int t2);
 
 #endif

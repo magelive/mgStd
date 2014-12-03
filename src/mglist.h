@@ -438,6 +438,7 @@ extern void mghlist_add_head(struct mghlist_node *n, struct mghlist_head *h);
  */
 extern void mghlist_add_before(struct mghlist_node *n,
 					struct mghlist_node *next);
+
 /*
    //在结点n之后插入结点next 
  */
