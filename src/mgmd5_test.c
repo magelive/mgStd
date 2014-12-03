@@ -16,15 +16,15 @@ void md5_decode(unsigned char *output, unsigned char * input, int len)
 
 int main(int argc, char *argv[])
 {
-    unsigned char *buf = malloc(128);
-    unsigned char *filebuf = malloc(32);
+    unsigned char buf[128];// = malloc(128);
+    unsigned char filebuf[32];// = malloc(32);
     memset(buf, 0, 128);
     memset(buf, 0, 32);
-    mg_md5_calc(buf, "topsec", 6);
-    mg_md5_file(filebuf, "./mgmd5.c");
+    mg_md5_calc(buf, "1234567890abcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyz", 63);
+    mg_md5_file(filebuf, "./sha1_dat.data");
     unsigned char outbuf[64];
     unsigned char fileoutbuf[64];
-    memset(outbuf, 0, 1024);
+    memset(outbuf, 0, 64);
     int i;
     for( i = 0; i < 16; i++)
     {
@@ -32,6 +32,6 @@ int main(int argc, char *argv[])
         sprintf(outbuf+i*2, "%02x", buf[i]);
     }
     printf("fileoutbuf = %s, outbuf = %s\n",fileoutbuf, outbuf);
-    free(buf);
-    free(filebuf);
+    //free(buf);
+    //free(filebuf);
 }
