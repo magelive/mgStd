@@ -140,7 +140,7 @@ void Round()
         else if(index >= 40 && index <=59) 
             temp = E + ((B&C)|(C&D)|(B&D)) + ((A<<5)|(A>>(32-5))) + W[index] + K[2]; 
         else if(index >= 60 && index <=79) 
-            temp = E + (B^C^D) + + ((A<<5)|(A>>(32-5))) + W[index] + K[3]; 
+            temp = E + (B^C^D) + ((A<<5)|(A>>(32-5))) + W[index] + K[3]; 
 
         E = D; 
         D = C; 

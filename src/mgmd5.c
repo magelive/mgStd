@@ -29,7 +29,7 @@ void mg_md5_calc(unsigned char *output, const unsigned char *input,
 
 void mg_md5_file(unsigned char *output, char *filename)
 {
-    FILE *fp = fopen(filename, "r");
+    FILE *fp = fopen(filename, "rb");
     if (fp == NULL)
         return;
     char buf[1024];
