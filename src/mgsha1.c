@@ -159,7 +159,6 @@ void mg_sha1_final(unsigned char output[SHA1_DIGEST_LEN], MG_SHA1_CTX *ctx)
     {
         sprintf(output+i*8, "%08x", ctx->H[i]);
     }
-    printf("output = %s\n", output);
     return; 
 }
 
@@ -175,7 +174,6 @@ void mg_sha1_file(unsigned char output[SHA1_DIGEST_LEN], char *filename)
 {
     if (!filename)
         return;
-    printf("filename = %s\n", filename);
     FILE *fp = fopen(filename, "rb");
     if (fp == NULL)
     {
