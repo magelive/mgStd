@@ -89,7 +89,7 @@ void mg_sha1_update(MG_SHA1_CTX *ctx, char *input, int input_len)
     ctx->all_len += input_len;
     if (input_len+ctx->LastStringLen < 16 * 4)
     {
-        bzero(ctx->LastString, sizeof(ctx->LastString));
+        //bzero(ctx->LastString, sizeof(ctx->LastString));
         memcpy(ctx->LastString+ctx->LastStringLen, input, input_len);
         ctx->LastStringLen += input_len;
         return;
@@ -167,6 +167,7 @@ void mg_sha1_file(unsigned char output[SHA1_DIGEST_LEN], char *filename)
 {
     if (!filename)
         return;
+    printf("filename = %s\n", filename);
     FILE *fp = fopen(filename, "rb");
     if (fp == NULL)
     {

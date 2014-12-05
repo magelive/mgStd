@@ -33,10 +33,15 @@ int main(int argc, char *argv[])
     printf("file sha1_dat.data sha1 : %s\n", outbuf);
     */
 
+    if(argc == 1) 
+    { 
+        printf("请输入要hash的文件名！\n"); 
+        exit(0); 
+    }
     unsigned char outbuf[64];
     bzero(outbuf, 64);
     uint64_t t = mg_get_tick_time_us();
-    mg_sha1_file(outbuf, "./mgsha1_test.c");
+    mg_sha1_file(outbuf, argv[1]);
     uint64_t n = mg_get_tick_time_us();
     printf("sha1 : %s, time : %d us\n", outbuf, n-t);
     return 0;
