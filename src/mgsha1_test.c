@@ -9,6 +9,7 @@
 
 int main(int argc, char *argv[])
 {
+    /*
     FILE *fp = fopen("./mgsha1_test.c", "rb");
     if (fp == NULL)
     {
@@ -19,6 +20,7 @@ int main(int argc, char *argv[])
     unsigned char outbuf[64];
     bzero(buf, 1024);
     bzero(outbuf, 64);
+    
     MG_SHA1_CTX mg_sha1_ctx;
     mg_sha1_init(&mg_sha1_ctx);
     while(fgets(buf, 1024, fp) != NULL)
@@ -29,5 +31,13 @@ int main(int argc, char *argv[])
     mg_sha1_final(outbuf, &mg_sha1_ctx);
     fclose(fp);
     printf("file sha1_dat.data sha1 : %s\n", outbuf);
+    */
+
+    unsigned char outbuf[64];
+    bzero(outbuf, 64);
+    uint64_t t = mg_get_tick_time_us();
+    mg_sha1_file(outbuf, "./mgsha1_test.c");
+    uint64_t n = mg_get_tick_time_us();
+    printf("sha1 : %s, time : %d us\n", outbuf, n-t);
     return 0;
 }
