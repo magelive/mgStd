@@ -163,6 +163,14 @@ void mg_sha1_final(unsigned char output[SHA1_DIGEST_LEN], MG_SHA1_CTX *ctx)
     return; 
 }
 
+void mg_sha1_calc(unsigned char output[SHA1_DIGEST_LEN], char *buf, int buf_len)
+{
+    MG_SHA1_CTX mg_sha1_ctx;
+    mg_sha1_init(&mg_sha1_ctx);
+    mg_sha1_update(&mg_sha1_ctx, buf, buf_len);
+    mg_sha1_final(output, &mg_sha1_ctx);
+}
+
 void mg_sha1_file(unsigned char output[SHA1_DIGEST_LEN], char *filename)
 {
     if (!filename)

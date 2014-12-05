@@ -25,6 +25,8 @@ typedef struct mg_sha1_context
 void mg_sha1_init(MG_SHA1_CTX *ctx);
 void mg_sha1_update(MG_SHA1_CTX *ctx, char *input, int input_len);
 void mg_sha1_final(unsigned char output[SHA1_DIGEST_LEN], MG_SHA1_CTX *ctx);
+
+void mg_sha1_calc(unsigned char output[SHA1_DIGEST_LEN], char *buf, int buf_len);
 void mg_sha1_file(unsigned char output[SHA1_DIGEST_LEN], char *filename);
 
 #endif
