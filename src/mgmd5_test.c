@@ -21,7 +21,7 @@ int main(int argc, char *argv[])
     memset(buf, 0, 128);
     memset(buf, 0, 32);
     mg_md5_calc(buf, "1234567890abcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyz", 63);
-    mg_md5_file(filebuf, "./sha1_dat.data");
+    mg_md5_file(filebuf, "./mgmd5_test.c");
     unsigned char outbuf[64];
     unsigned char fileoutbuf[64];
     memset(outbuf, 0, 64);

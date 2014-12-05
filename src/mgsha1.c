@@ -3,25 +3,9 @@
 #include <time.h> 
 #include <stdint.h>
 #include <string.h>
+#include <strings.h>
 
-typedef struct mg_sha1_context
-{
-    unsigned int H[5];
-    unsigned int K[4];
-
-    unsigned int M[16];
-    unsigned int W[80];
-
-    unsigned int A;
-    unsigned int B;
-    unsigned int C;
-    unsigned int D;
-    unsigned int E;
-    unsigned char LastString[512/8*2];
-    unsigned int LastStringLen;
-    unsigned long long all_len;
-
-}MG_SHA1_CTX;
+#include "mgsha1.h"
 
 void mg_sha1_init(MG_SHA1_CTX *ctx)
 {
@@ -61,25 +45,6 @@ static void mg_sha1_setW(MG_SHA1_CTX *ctx)
     } 
 } 
 
-/*
-static void mg_sha1_setW(MG_SHA1_CTX *ctx) 
-{ 
-    int index = 0;
-    for(index = 0; index <=15;index++) 
-    {   //编码方式，M的四个字节的顺序是反过来的，将其移位 
-        //ctx->W[index] = (ctx->M[index]>>24)|(ctx->M[index]<<24)|
-        //    ((ctx->M[index]&0x00ff0000)>>8)|((ctx->M[index]&0x0000ff00)<<8); 
-
-        ctx->W[index] = ctx->M[index];
-    }  
-
-    for(index = 16;index<=79;index++) 
-    { 
-        unsigned int temp = ctx->W[index -16]^ctx->W[index - 14]^ctx->W[index - 8]^ctx->W[index - 3]; 
-        ctx->W[index] = (temp<<1)|(temp>>(32 -1)); 
-    } 
-}
-*/
 static void mg_sha1_round(MG_SHA1_CTX *ctx) 
 { 
     ctx->A = ctx->H[0]; 
@@ -124,6 +89,7 @@ void mg_sha1_update(MG_SHA1_CTX *ctx, char *input, int input_len)
     ctx->all_len += input_len;
     if (input_len+ctx->LastStringLen < 16 * 4)
     {
+        bzero(ctx->LastString, sizeof(ctx->LastString));
         memcpy(ctx->LastString+ctx->LastStringLen, input, input_len);
         ctx->LastStringLen += input_len;
         return;
@@ -133,16 +99,18 @@ void mg_sha1_update(MG_SHA1_CTX *ctx, char *input, int input_len)
         process_len = 0;
         for (i = 0; i < ctx->LastStringLen/64; i++)
         {
+            bzero(ctx->M, sizeof(ctx->M));
             memcpy(ctx->M, ctx->LastString+process_len, 64);
             process_len += 64;
             mg_sha1_setW(ctx);
             mg_sha1_round(ctx);
 
         }
+        bzero(ctx->M, sizeof(ctx->M));
         memcpy(ctx->M, ctx->LastString + process_len, ctx->LastStringLen%64);
-        memcpy((char *)ctx->M+ctx->LastStringLen%64, input, 64-(ctx->LastStringLen%64));
+        memcpy(((char *)ctx->M)+ctx->LastStringLen%64, input, 64-(ctx->LastStringLen%64));
         input_len -= (64-(ctx->LastStringLen%64));
-        process_len = ctx->LastStringLen%64;
+        process_len = 64 - (ctx->LastStringLen%64);
         mg_sha1_setW(ctx);
         mg_sha1_round(ctx);
     }
@@ -154,12 +122,11 @@ void mg_sha1_update(MG_SHA1_CTX *ctx, char *input, int input_len)
         mg_sha1_setW(ctx);
         mg_sha1_round(ctx);
     }
+    bzero(ctx->LastString, sizeof(ctx->LastString));
     memcpy(ctx->LastString, input+process_len, input_len%64);
     ctx->LastStringLen = input_len%64;
     return;
 }
-
-#define SHA1_DIGEST_LEN 20
 
 void mg_sha1_final(unsigned char output[SHA1_DIGEST_LEN], MG_SHA1_CTX *ctx)
 {
@@ -187,29 +154,27 @@ void mg_sha1_final(unsigned char output[SHA1_DIGEST_LEN], MG_SHA1_CTX *ctx)
         mg_sha1_round(ctx);
     }
     
-    /*
+    
     for(i = 0; i < 5; i++)
     {
-        //sprintf(output, "%02x", ctx->H[i]);
-        memcpy(output+i*(sizeof(ctx->H[i])), &(ctx->H[i]), sizeof(ctx->H[i]));
+        sprintf(output+i*8, "%08x", ctx->H[i]);
     }
-    */
+    printf("output = %s\n", output);
+    return; 
 }
 
-int main(int argc, char *argv[])
+void mg_sha1_file(unsigned char output[SHA1_DIGEST_LEN], char *filename)
 {
-    FILE *fp = fopen("./sha1_dat.data", "rb");
+    if (!filename)
+        return;
+    FILE *fp = fopen(filename, "rb");
     if (fp == NULL)
     {
         printf("file open error!\n");
-        return 0;
+        return ;
     }
     char buf[1024];
-    char out[32];
-    char outbuf[64];
     bzero(buf, 1024);
-    bzero(out, 32);
-    bzero(outbuf, 64);
     MG_SHA1_CTX mg_sha1_ctx;
     mg_sha1_init(&mg_sha1_ctx);
     while(fgets(buf, 1024, fp) != NULL)
@@ -217,19 +182,7 @@ int main(int argc, char *argv[])
         mg_sha1_update(&mg_sha1_ctx, buf, strlen(buf));
         bzero(buf, 1024);
     }
-    mg_sha1_final(out, &mg_sha1_ctx);
+    mg_sha1_final(output, &mg_sha1_ctx);
     fclose(fp);
-    int i = 0;
-    //for (i = 0; i < 20; i++)
-    //{
-    //    sprintf(outbuf+i*2, "%02x", out);
-    //}
-    //printf("outbuf = %s\n", outbuf);
-    printf("maybe is : ");
-    for (i = 0; i < 5; i++)
-    {
-        printf("%08x ", mg_sha1_ctx.H[i]);
-    }
-    printf("\n");
-    return 0;
+    return ;
 }
