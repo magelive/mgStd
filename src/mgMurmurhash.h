@@ -1,5 +1,5 @@
-#ifndef __MG_MURMURHASH__
-#define __MG_MURMURHASH__
+#ifndef __MG_MURMURHASH_H_
+#define __MG_MURMURHASH_H_
 /********************************
 
 

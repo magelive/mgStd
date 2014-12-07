@@ -1,5 +1,5 @@
-#ifndef __MG_TIME__
-#define __MG_TIME__
+#ifndef __MG_TIME_H_
+#define __MG_TIME_H_
 
 
 //获取当前时间，并将其转换为字符型，其格式为 :year-mon-day hour:min:sec
