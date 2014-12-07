@@ -1,5 +1,5 @@
-#ifndef __MG_SHA1__
-#define __MG_SHA1__
+#ifndef __MG_SHA1_H_
+#define __MG_SHA1_H_
 
 #define SHA1_DIGEST_LEN 20
 
