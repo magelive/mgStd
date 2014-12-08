@@ -39,7 +39,9 @@ void mg_sha256_init(MG_SHA256_CTX *ctx)
  
     ctx->K[56] = 0x748f82ee; ctx->K[57] = 0x78a5636f; ctx->K[58] = 0x84c87814; ctx->K[59] = 0x8cc70208;
     ctx->K[60] = 0x90befffa; ctx->K[61] = 0xa4506ceb; ctx->K[62] = 0xbef9a3f7; ctx->K[63] = 0xc67178f2;
-    
+ 
+    bzero(ctx->LastString, sizeof(ctx->LastString));
+
 	ctx->LastStringLen = 0;
     ctx->all_len = 0;
 
@@ -70,7 +72,7 @@ static void mg_sha256_setw(MG_SHA256_CTX *ctx)
 			((ctx->M[index]&0x00ff0000)>>8) | ((ctx->M[index]&0x0000ff00)<<8); 
     }  
     unsigned int s0 = 0, s1 = 0; 
-    for(index = 16; index < RoundNum; index++) 
+    for(index = 16; index < SHA256_ROUNDNUM; index++) 
     { 
         s0 = 0; 
         s1 = 0; 
@@ -94,7 +96,7 @@ static void mg_sha256_round(MG_SHA256_CTX *ctx)
 
     int index = 0; 
     unsigned int t1 = 0, t2= 0, s0 = 0, s1 = 0; 
-    for(index = 0;index < RoundNum ;index++) 
+    for(index = 0;index < SHA256_ROUNDNUM ;index++) 
     { 
         s0 = 0; 
         s1 = 0; 
@@ -193,7 +195,7 @@ void mg_sha256_final(unsigned char output[SHA256_DIGEST_LEN], MG_SHA256_CTX *ctx
         mg_sha256_round(ctx);
     }
     
-    for(i = 0; i < ConstNum; i++)
+    for(i = 0; i < SHA256_CONSTNUM; i++)
     {
         sprintf(output+i*8, "%08x", ctx->H[i]);
     }

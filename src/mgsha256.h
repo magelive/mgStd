@@ -1,19 +1,19 @@
 #ifndef __MG_SHA256_H_
 #define __MG_SHA256_H_
 
-#define RoundNum 64 
-#define BlockWidthNum 16 
-#define ConstNum 8
+#define SHA256_ROUNDNUM 64 
+#define SHA256_BLOCKWIDTHNUM 16 
+#define SHA256_CONSTNUM 8
 
 #define SHA256_DIGEST_LEN 20
 
 typedef struct mg_sha256_context
 {
-    unsigned int H[ConstNum];
-    unsigned int K[RoundNum];
-    unsigned int M[BlockWidthNum]; 
-    unsigned int W[RoundNum]; 
-    unsigned char LastString[BlockWidthNum*4*2];
+    unsigned int H[SHA256_CONSTNUM];
+    unsigned int K[SHA256_ROUNDNUM];
+    unsigned int M[SHA256_BLOCKWIDTHNUM]; 
+    unsigned int W[SHA256_ROUNDNUM]; 
+    unsigned char LastString[SHA256_BLOCKWIDTHNUM*4*2];
     unsigned int LastStringLen;
     unsigned long long all_len;
 }MG_SHA256_CTX;
