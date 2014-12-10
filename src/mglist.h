@@ -132,9 +132,11 @@ extern void mglist_splice_tail_init(struct mglist_head *list,
  * @member:	the name of the mglist_struct within the struct.
  */
 
+#ifndef container_of
 #define container_of(ptr, type, member) ({                      \
         const typeof( ((type *)0)->member ) *__mptr = (ptr);    \
         (type *)( (char *)__mptr - offsetof(type,member) );})
+#endif
 
 #define mglist_entry(ptr, type, member) \
 	container_of(ptr, type, member)
