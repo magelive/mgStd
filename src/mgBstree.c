@@ -88,7 +88,24 @@ void mg_Bstree_del(MG_BS_TREE *root, MG_BS_TREE *node)
     }
 }
 
-void mg_Bstree_find(MG_BS_TREE *root, MG_BS_TREE *node, MG_BS_TREE **result)
+MG_BS_TREE *mg_Bstree_find(MG_BS_TREE *root, MG_BS_TREE *node)
+{
+    int cmp_result = 0;
+    MG_BS_TREE *p = root;
+    while(p)
+    {
+        cmp_result = p->cmp_func(p, node);
+        if (cmp_result == 0)
+            break;
+        else if (cmp_result > 0)    //p>node
+            p = p->lchild;
+        else
+            p = p->rchild;            
+    }
+    return p;
+}
+
+void mg_Bstree_find_recursive(MG_BS_TREE *root, MG_BS_TREE *node, MG_BS_TREE **result)
 {
     int cmp_result;
     if (root)
@@ -97,18 +114,17 @@ void mg_Bstree_find(MG_BS_TREE *root, MG_BS_TREE *node, MG_BS_TREE **result)
         if (cmp_result == 0)
         {
             *result = root;
-            printf("find it ! result = %x\n", *result);
             return;
         }
         else if (cmp_result > 0)
-            mg_Bstree_find(root->lchild, node, result);
+            mg_Bstree_find_recursive(root->lchild, node, result);
         else
-            mg_Bstree_find(root->rchild, node, result);
+            mg_Bstree_find_recursive(root->rchild, node, result);
     }
     return;
 }
 
-void mg_Bstree_visit(MG_BS_TREE *root, mg_BStree_op_func op_func, void *arg)
+void mg_Bstree_visit_LMR(MG_BS_TREE *root, mg_BStree_op_func op_func, void *arg)
 {
     if (root)
     {
@@ -118,3 +134,22 @@ void mg_Bstree_visit(MG_BS_TREE *root, mg_BStree_op_func op_func, void *arg)
     }
 }
     
+void mg_Bstree_visit_MLR(MG_BS_TREE *root, mg_BStree_op_func op_func, void *arg)
+{
+    if (root)
+    {
+        op_func(root, arg);
+        mg_Bstree_visit(root->lchild, op_func, arg);
+        mg_Bstree_visit(root->rchild, op_func, arg);
+    }
+}
+
+void mg_Bstree_visit_LRM(MG_BS_TREE *root, mg_BStree_op_func op_func, void *arg)
+{
+    if (root)
+    {
+        mg_Bstree_visit(root->lchild, op_func, arg);
+        mg_Bstree_visit(root->rchild, op_func, arg);
+        op_func(root, arg);
+    }
+}

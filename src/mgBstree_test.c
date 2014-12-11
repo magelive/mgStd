@@ -55,7 +55,7 @@ int main(int argc, char *argv[])
     find_test.key = 112;
     MG_BS_TREE *find = NULL;
     
-    mg_Bstree_find(&root->tree_node, &find_test.tree_node, &find);
+    mg_Bstree_find_recursive(&root->tree_node, &find_test.tree_node, &find);
     printf("find = %x\n", find);
     if (find != NULL)
     {

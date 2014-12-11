@@ -51,9 +51,15 @@ void mg_Bstree_insert(MG_BS_TREE *root, MG_BS_TREE *node);
 
 void mg_Bstree_del(MG_BS_TREE *root, MG_BS_TREE *node);
 
-void mg_Bstree_find(MG_BS_TREE *root, MG_BS_TREE *node, MG_BS_TREE **result);
+MG_BS_TREE *mg_Bstree_find(MG_BS_TREE *root, MG_BS_TREE *node);
 
-void mg_Bstree_visit(MG_BS_TREE *root, mg_BStree_op_func *op_func, void *arg);
+void mg_Bstree_find_recursive(MG_BS_TREE *root, MG_BS_TREE *node, MG_BS_TREE **result);
+
+#define mg_Bstree_visit mg_Bstree_visit_LMR
+
+void mg_Bstree_visit_LMR(MG_BS_TREE *root, mg_BStree_op_func *op_func, void *arg);
+void mg_Bstree_visit_MLR(MG_BS_TREE *root, mg_BStree_op_func *op_func, void *arg);
+void mg_Bstree_visit_LRM(MG_BS_TREE *root, mg_BStree_op_func *op_func, void *arg);
 
 void MG_BSTREE_INIT_NODE(MG_BS_TREE *node, mg_BStree_cmp_func *cmp);
 #endif 
