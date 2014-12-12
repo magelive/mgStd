@@ -47,13 +47,13 @@ struct mg_Binary_sort_tree
 
 #define mgBstree_entry(ptr, type, member) container_of(ptr, type, member)
 
-void mg_Bstree_insert(MG_BS_TREE *root, MG_BS_TREE *node);
+int mg_Bstree_insert(MG_BS_TREE *root, MG_BS_TREE *node);
 
 void mg_Bstree_del(MG_BS_TREE *root, MG_BS_TREE *node);
 
-MG_BS_TREE *mg_Bstree_find(MG_BS_TREE *root, MG_BS_TREE *node);
+MG_BS_TREE *mg_Bstree_search(MG_BS_TREE *root, MG_BS_TREE *node);
 
-void mg_Bstree_find_recursive(MG_BS_TREE *root, MG_BS_TREE *node, MG_BS_TREE **result);
+void mg_Bstree_search_recursive(MG_BS_TREE *root, MG_BS_TREE *node, MG_BS_TREE **result);
 
 #define mg_Bstree_visit mg_Bstree_visit_LMR
 

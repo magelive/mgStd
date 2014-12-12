@@ -30,8 +30,8 @@ void mgBstree_test_op(MG_BS_TREE *node, void *arg)
 int main(int argc, char *argv[])
 {
     struct mgBstree_test test[100];
-    struct mgBstree_test find_test, del_test;
-    MG_BSTREE_INIT_NODE(&find_test.tree_node, &mgBstree_test_cmp);
+    struct mgBstree_test search_test, del_test;
+    MG_BSTREE_INIT_NODE(&search_test.tree_node, &mgBstree_test_cmp);
     int i,j;
     for(i = 0; i < 100; i++)
     {
@@ -52,14 +52,14 @@ int main(int argc, char *argv[])
     mg_Bstree_visit(&root->tree_node, mgBstree_test_op, NULL);
     printf("\ntree len = %d\n", tree_count);
 
-    find_test.key = 112;
-    MG_BS_TREE *find = NULL;
+    search_test.key = 112;
+    MG_BS_TREE *search = NULL;
     
-    mg_Bstree_find_recursive(&root->tree_node, &find_test.tree_node, &find);
-    printf("find = %x\n", find);
-    if (find != NULL)
+    mg_Bstree_search_recursive(&root->tree_node, &search_test.tree_node, &search);
+    printf("search = %x\n", search);
+    if (search != NULL)
     {
-        MG_BS_TREE_TEST *ft = mgBstree_entry(find, MG_BS_TREE_TEST, tree_node);
+        MG_BS_TREE_TEST *ft = mgBstree_entry(search, MG_BS_TREE_TEST, tree_node);
         printf("ft->key = %d\n", ft->key);
     }
     else
@@ -67,7 +67,7 @@ int main(int argc, char *argv[])
         printf("No this node!\n");
     }
 
-    mg_Bstree_del(&root->tree_node, find);
+    mg_Bstree_del(&root->tree_node, search);
     
     tree_count = 0;
     mg_Bstree_visit(&root->tree_node, mgBstree_test_op, NULL);

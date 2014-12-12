@@ -1,0 +1,237 @@
+diff -pNur --exclude-from=file1 libuv-v0.11.25/include/uv.h libuv-v0.11.25-ac/include/uv.h
+--- libuv-v0.11.25/include/uv.h	2014-05-02 00:16:45.000000000 +0800
++++ libuv-v0.11.25-ac/include/uv.h	2014-09-30 10:54:15.623538551 +0800
+@@ -618,6 +618,8 @@ struct uv_stream_s {
+ 
+ UV_EXTERN int uv_listen(uv_stream_t* stream, int backlog, uv_connection_cb cb);
+ 
++//already listen ,check  accept
++UV_EXTERN int uv_listen_ex(uv_stream_t* stream, int backlog, uv_connection_cb cb);
+ /*
+  * This call is used in conjunction with uv_listen() to accept incoming
+  * connections. Call uv_accept after receiving a uv_connection_cb to accept
+@@ -1356,6 +1358,7 @@ UV_EXTERN int uv_async_init(uv_loop_t*,
+                             uv_async_t* async,
+                             uv_async_cb async_cb);
+ 
++
+ /*
+  * This can be called from other threads to wake up a libuv thread.
+  */
+diff -pNur --exclude-from=file1 libuv-v0.11.25/src/unix/async.c libuv-v0.11.25-ac/src/unix/async.c
+--- libuv-v0.11.25/src/unix/async.c	2014-05-02 00:16:45.000000000 +0800
++++ libuv-v0.11.25-ac/src/unix/async.c	2014-09-30 10:55:08.909543034 +0800
+@@ -40,6 +40,7 @@ static int uv__async_eventfd(void);
+ 
+ 
+ int uv_async_init(uv_loop_t* loop, uv_async_t* handle, uv_async_cb async_cb) {
++
+   int err;
+ 
+   err = uv__async_start(loop, &loop->async_watcher, uv__async_event);
+@@ -56,8 +57,8 @@ int uv_async_init(uv_loop_t* loop, uv_as
+   return 0;
+ }
+ 
+-
+ int uv_async_send(uv_async_t* handle) {
++
+   if (uv__async_make_pending(&handle->pending) == 0)
+     uv__async_send(&handle->loop->async_watcher);
+ 
+@@ -77,9 +78,13 @@ static void uv__async_event(uv_loop_t* l
+   QUEUE* q;
+   uv_async_t* h;
+ 
++  int i=0;
+   QUEUE_FOREACH(q, &loop->async_handles) {
++     i++;
++
+     h = QUEUE_DATA(q, uv_async_t, queue);
+ 
++
+     if (h->pending == 0)
+       continue;
+     h->pending = 0;
+@@ -87,6 +92,7 @@ static void uv__async_event(uv_loop_t* l
+     if (h->async_cb == NULL)
+       continue;
+     h->async_cb(h);
++
+   }
+ }
+ 
+@@ -114,7 +120,7 @@ static int uv__async_make_pending(int* p
+     return val != 0;
+   }
+ #elif defined(__GNUC__) && (__GNUC__ > 4 || __GNUC__ == 4 && __GNUC_MINOR__ > 0)
+-  return __sync_val_compare_and_swap(pending, 0, 1) != 0;
++  return __sync_val_compare_and_swap(pending, 0, 1) != 0;//These builtins perform an atomic compare and swap. That is, if the current value of *ptr is oldval, then write newval into *ptr
+ #else
+   ACCESS_ONCE(int, *pending) = 1;
+   return 0;
+@@ -123,6 +129,7 @@ static int uv__async_make_pending(int* p
+ 
+ 
+ static void uv__async_io(uv_loop_t* loop, uv__io_t* w, unsigned int events) {
++
+   struct uv__async* wa;
+   char buf[1024];
+   unsigned n;
+@@ -165,7 +172,6 @@ static void uv__async_io(uv_loop_t* loop
+   wa->cb(loop, wa, n);
+ }
+ 
+-
+ void uv__async_send(struct uv__async* wa) {
+   const void* buf;
+   ssize_t len;
+@@ -176,6 +182,7 @@ void uv__async_send(struct uv__async* wa
+   len = 1;
+   fd = wa->wfd;
+ 
++
+ #if defined(__linux__)
+   if (fd == -1) {
+     static const uint64_t val = 1;
+@@ -207,6 +214,7 @@ void uv__async_init(struct uv__async* wa
+ 
+ 
+ int uv__async_start(uv_loop_t* loop, struct uv__async* wa, uv__async_cb cb) {
++
+   int pipefd[2];
+   int err;
+ 
+diff -pNur --exclude-from=file1 libuv-v0.11.25/src/unix/core.c libuv-v0.11.25-ac/src/unix/core.c
+--- libuv-v0.11.25/src/unix/core.c	2014-05-02 00:16:45.000000000 +0800
++++ libuv-v0.11.25-ac/src/unix/core.c	2014-09-30 10:55:30.141544234 +0800
+@@ -709,6 +709,7 @@ void uv__io_init(uv__io_t* w, uv__io_cb 
+ 
+ 
+ void uv__io_start(uv_loop_t* loop, uv__io_t* w, unsigned int events) {
++
+   assert(0 == (events & ~(UV__POLLIN | UV__POLLOUT)));
+   assert(0 != events);
+   assert(w->fd >= 0);
+@@ -735,6 +736,7 @@ void uv__io_start(uv_loop_t* loop, uv__i
+     QUEUE_INSERT_TAIL(&loop->watcher_queue, &w->watcher_queue);
+ 
+   if (loop->watchers[w->fd] == NULL) {
++
+     loop->watchers[w->fd] = w;
+     loop->nfds++;
+   }
+diff -pNur --exclude-from=file1 libuv-v0.11.25/src/unix/internal.h libuv-v0.11.25-ac/src/unix/internal.h
+--- libuv-v0.11.25/src/unix/internal.h	2014-05-02 00:16:45.000000000 +0800
++++ libuv-v0.11.25-ac/src/unix/internal.h	2014-09-30 10:55:46.364563687 +0800
+@@ -189,17 +189,20 @@ void uv__stream_destroy(uv_stream_t* str
+ int uv__stream_try_select(uv_stream_t* stream, int* fd);
+ #endif /* defined(__APPLE__) */
+ void uv__server_io(uv_loop_t* loop, uv__io_t* w, unsigned int events);
++void uv__server_io_ex(uv_loop_t* loop, uv__io_t* w, unsigned int events);
+ int uv__accept(int sockfd);
+ int uv__dup2_cloexec(int oldfd, int newfd);
+ int uv__open_cloexec(const char* path, int flags);
+ 
+ /* tcp */
+ int uv_tcp_listen(uv_tcp_t* tcp, int backlog, uv_connection_cb cb);
++int uv_tcp_listen_ex(uv_tcp_t* tcp, int backlog, uv_connection_cb cb);
+ int uv__tcp_nodelay(int fd, int on);
+ int uv__tcp_keepalive(int fd, int on, unsigned int delay);
+ 
+ /* pipe */
+ int uv_pipe_listen(uv_pipe_t* handle, int backlog, uv_connection_cb cb);
++int uv_pipe_listen_ex(uv_pipe_t* handle, int backlog, uv_connection_cb cb);
+ 
+ /* timer */
+ void uv__run_timers(uv_loop_t* loop);
+diff -pNur --exclude-from=file1 libuv-v0.11.25/src/unix/linux-core.c libuv-v0.11.25-ac/src/unix/linux-core.c
+--- libuv-v0.11.25/src/unix/linux-core.c	2014-05-02 00:16:45.000000000 +0800
++++ libuv-v0.11.25-ac/src/unix/linux-core.c	2014-09-30 10:56:02.389538725 +0800
+@@ -234,6 +234,7 @@ void uv__io_poll(uv_loop_t* loop, int ti
+       pe = events + i;
+       fd = pe->data;
+ 
++
+       /* Skip invalidated events, see uv__platform_invalidate_fd */
+       if (fd == -1)
+         continue;
+diff -pNur --exclude-from=file1 libuv-v0.11.25/src/unix/pipe.c libuv-v0.11.25-ac/src/unix/pipe.c
+--- libuv-v0.11.25/src/unix/pipe.c	2014-05-02 00:16:45.000000000 +0800
++++ libuv-v0.11.25-ac/src/unix/pipe.c	2014-09-30 11:01:06.510541029 +0800
+@@ -115,6 +115,15 @@ int uv_pipe_listen(uv_pipe_t* handle, in
+   return 0;
+ }
+ 
++int uv_pipe_listen_ex(uv_pipe_t* handle, int backlog, uv_connection_cb cb) {
++  if (uv__stream_fd(handle) == -1)
++    return -EINVAL;
++
++  handle->connection_cb = cb;
++  handle->io_watcher.cb = uv__server_io;
++  uv__io_start(handle->loop, &handle->io_watcher, UV__POLLIN);
++  return 0;
++}
+ 
+ void uv__pipe_close(uv_pipe_t* handle) {
+   if (handle->pipe_fname) {
+diff -pNur --exclude-from=file1 libuv-v0.11.25/src/unix/stream.c libuv-v0.11.25-ac/src/unix/stream.c
+--- libuv-v0.11.25/src/unix/stream.c	2014-05-02 00:16:45.000000000 +0800
++++ libuv-v0.11.25-ac/src/unix/stream.c	2014-09-30 11:01:48.885541640 +0800
+@@ -527,7 +527,6 @@ void uv__server_io(uv_loop_t* loop, uv__
+   }
+ }
+ 
+-
+ #undef UV_DEC_BACKLOG
+ 
+ 
+@@ -618,6 +617,28 @@ int uv_listen(uv_stream_t* stream, int b
+ 
+   return err;
+ }
++int uv_listen_ex(uv_stream_t* stream, int backlog, uv_connection_cb cb) {
++  int err;
++
++  err = -EINVAL;
++  switch (stream->type) {
++  case UV_TCP:
++    err = uv_tcp_listen_ex((uv_tcp_t*)stream, backlog, cb);
++    break;
++
++  case UV_NAMED_PIPE:
++    err = uv_pipe_listen_ex((uv_pipe_t*)stream, backlog, cb);
++    break;
++
++  default:
++    assert(0);
++  }
++
++  if (err == 0)
++    uv__handle_start(stream);
++
++  return err;
++}
+ 
+ 
+ static void uv__drain(uv_stream_t* stream) {
+diff -pNur --exclude-from=file1 libuv-v0.11.25/src/unix/tcp.c libuv-v0.11.25-ac/src/unix/tcp.c
+--- libuv-v0.11.25/src/unix/tcp.c	2014-05-02 00:16:45.000000000 +0800
++++ libuv-v0.11.25-ac/src/unix/tcp.c	2014-09-30 11:01:19.870548087 +0800
+@@ -237,6 +237,16 @@ int uv_tcp_listen(uv_tcp_t* tcp, int bac
+   return 0;
+ }
+ 
++int uv_tcp_listen_ex(uv_tcp_t* tcp, int backlog, uv_connection_cb cb) {
++
++  tcp->connection_cb = cb;
++
++  /* Start listening for connections. */
++  tcp->io_watcher.cb = uv__server_io;
++  uv__io_start(tcp->loop, &tcp->io_watcher, UV__POLLIN);
++
++  return 0;
++}
+ 
+ int uv__tcp_nodelay(int fd, int on) {
+   if (setsockopt(fd, IPPROTO_TCP, TCP_NODELAY, &on, sizeof(on)))

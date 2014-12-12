@@ -18,15 +18,15 @@ static void MG_BSTREE_SET_PARENT_CHILD(MG_BS_TREE *node, MG_BS_TREE *child)
     return;
 }
 
-void mg_Bstree_insert(MG_BS_TREE *root, MG_BS_TREE *node)
+int mg_Bstree_insert(MG_BS_TREE *root, MG_BS_TREE *node)
 {
    if (node == NULL)
-       return;
+       return 0;
    if (root == NULL)
    {
        root = node;
        MG_BSTREE_INIT_NODE(root, node->cmp_func);
-       return;
+       return 1;
    }
    int cmp_result = root->cmp_func(root, node);
    if (cmp_result < 0)//root<node
@@ -37,7 +37,7 @@ void mg_Bstree_insert(MG_BS_TREE *root, MG_BS_TREE *node)
         }
         else
         {
-            mg_Bstree_insert(root->rchild, node);
+            return mg_Bstree_insert(root->rchild, node);
         }
    }
    else if (cmp_result > 0)
@@ -48,10 +48,11 @@ void mg_Bstree_insert(MG_BS_TREE *root, MG_BS_TREE *node)
         }
         else
         {
-            mg_Bstree_insert(root->lchild, node);
+            return mg_Bstree_insert(root->lchild, node);
         }
    }
-   return;
+   else
+       return 0;
 }
 
 void mg_Bstree_del(MG_BS_TREE *root, MG_BS_TREE *node)
@@ -88,7 +89,7 @@ void mg_Bstree_del(MG_BS_TREE *root, MG_BS_TREE *node)
     }
 }
 
-MG_BS_TREE *mg_Bstree_find(MG_BS_TREE *root, MG_BS_TREE *node)
+MG_BS_TREE *mg_Bstree_search(MG_BS_TREE *root, MG_BS_TREE *node)
 {
     int cmp_result = 0;
     MG_BS_TREE *p = root;
@@ -105,7 +106,7 @@ MG_BS_TREE *mg_Bstree_find(MG_BS_TREE *root, MG_BS_TREE *node)
     return p;
 }
 
-void mg_Bstree_find_recursive(MG_BS_TREE *root, MG_BS_TREE *node, MG_BS_TREE **result)
+void mg_Bstree_search_recursive(MG_BS_TREE *root, MG_BS_TREE *node, MG_BS_TREE **result)
 {
     int cmp_result;
     if (root)
@@ -117,9 +118,9 @@ void mg_Bstree_find_recursive(MG_BS_TREE *root, MG_BS_TREE *node, MG_BS_TREE **r
             return;
         }
         else if (cmp_result > 0)
-            mg_Bstree_find_recursive(root->lchild, node, result);
+            mg_Bstree_search_recursive(root->lchild, node, result);
         else
-            mg_Bstree_find_recursive(root->rchild, node, result);
+            mg_Bstree_search_recursive(root->rchild, node, result);
     }
     return;
 }
