@@ -2,6 +2,14 @@
 #include <stdlib.h>
 #include "mgavltree.h"
 
+void MG_AVLTREE_INIT(MG_AVLTREE_NODE *node, mg_avltree_cmp_func *cmp_func)
+{
+    node->avltree_height = 0;
+    node->parent = NULL;
+    node->lchild = NULL;
+    node->rchild = NULL;
+    node->cmp_func = cmp_func;
+}
 static unsigned long long mg_avltree_height(MG_AVLTREE_NODE *node)
 {
     return MG_AVLTREE_HEIGHT(node);
@@ -55,12 +63,12 @@ MG_AVLTREE_NODE* mg_avltree_search_recursive(MG_AVLTREE_NODE *root, MG_AVLTREE_N
     if (root == NULL || find_node == NULL)
         return NULL;
     int result = root->cmp_func(root, find_node);
-    if (return == 0)
+    if (result == 0)
         return root;
     else if (result > 0) //root->key > find_node->key
-        return mg_avltree_search(root->lchild, node);
+        return mg_avltree_search(root->lchild, find_node);
     else
-        return mg_avltree_search(root->rchild, node);
+        return mg_avltree_search(root->rchild, find_node);
 }
 
 /*
@@ -128,14 +136,16 @@ static MG_AVLTREE_NODE* left_left_rotation(MG_AVLTREE_NODE* node)
     node->lchild = nl->rchild;
     nl->rchild = node;
 
-    node->lchild->parent = node;
+    if (node->lchild != NULL)
+        node->lchild->parent = node;
     nl->parent = node->parent;
     node->parent = nl;
 
-    (parent->lchild == node) ? (parent->lchild = nl):(parent->rchild = nl);
+    if (parent != NULL)
+        (parent->lchild == node) ? (parent->lchild = nl):(parent->rchild = nl);
 
     node->avltree_height = MG_MAX( MG_AVLTREE_HEIGHT(node->lchild), MG_AVLTREE_HEIGHT(node->rchild)) + 1;
-    nl->avltree_height = MG_MAX( MG_AVLTREE_HEIGHT(nl->lchild), MG_AVLTREE_NODE(node)) + 1;
+    nl->avltree_height = MG_MAX( MG_AVLTREE_HEIGHT(nl->lchild), MG_AVLTREE_HEIGHT(node)) + 1;
 
     return nl;
 }
@@ -157,14 +167,17 @@ static MG_AVLTREE_NODE* right_right_rotation(MG_AVLTREE_NODE* node)
     node->rchild = nr->lchild;
     nr->lchild = node;
 
-    node->rchild->parent = node;
+    if (node->rchild != NULL)
+        node->rchild->parent = node;
+
     nr->parent = node->parent;
     node->parent = nr;
 
-    (parent->lchild == node) ? (parent->lchild = nr):(parent->rchild = nr );
+    if (parent != NULL)
+        (parent->lchild == node) ? (parent->lchild = nr):(parent->rchild = nr );
 
-    node->height = MG_MAX( MG_AVLTREE_HEIGHT(node->lchild), MG_AVLTREE_HEIGHT(node->rchild)) + 1;
-    nr->height = MG_MAX( MG_AVLTREE_HEIGHT(nr->rchild), MG_AVLTREE_HEIGHT(node)) + 1;
+    node->avltree_height = MG_MAX( MG_AVLTREE_HEIGHT(node->lchild), MG_AVLTREE_HEIGHT(node->rchild)) + 1;
+    nr->avltree_height = MG_MAX( MG_AVLTREE_HEIGHT(nr->rchild), MG_AVLTREE_HEIGHT(node)) + 1;
     return nr;
 }
 
@@ -260,7 +273,7 @@ MG_AVLTREE_NODE* mg_avltree_insert(MG_AVLTREE_NODE* root, MG_AVLTREE_NODE *node)
             return root;
         }
     }
-    root->height = MG_MAX( MG_AVLTREE_HEIGHT(root->lchild), MG_AVLTREE_HEIGHT(root->rchild)) + 1;
+    root->avltree_height = (MG_MAX( MG_AVLTREE_HEIGHT(root->lchild), MG_AVLTREE_HEIGHT(root->rchild)) + 1);
     return root;
 }
 
