@@ -67,6 +67,26 @@ mg_splaytree_t* mg_splaytree_max_node(mg_splaytree_t* root)
     return root;
 }
 
+//在树中搜寻某值
+mg_splaytree_t *mg_splaytree_search(mg_splaytree_t *root, mg_splaytree_t *node)
+{
+    if (!root)
+        return NULL;
+    int cmp_result = root->cmp_func(root, node);
+    if (cmp_result > 0)//root>node
+    {
+        mg_splaytree_search(root->lchild, node);
+    }
+    else if (cmp_result < 0)
+    {
+        mg_splaytree_search(root->rchild, node);
+    }
+    else
+    {
+        return root;
+    }
+}
+
 //右单旋
 static mg_splaytree_t* right_single_rotation(mg_splaytree_t* node)
 {
@@ -132,7 +152,34 @@ static mg_splaytree_t* left_double_rotation(mg_splaytree_t* node)
     return left_single_rotation(node);
 }
 
-static mg_splaytree_t *mg_splaytree_splay(mg_splaytree_t *root, mg_splaytree_t *node)
+//自下向上伸展,这个可以保证伸展结束后，root为node的一个子树
+static mg_splaytree_t *mg_splaytree_splay_node_to_root(mg_splaytree_t *root, mg_splaytree_t *node)
+{
+    mg_splaytree_t *seach_node = mg_splaytree_search(root, node);
+    if (seach_node == NULL)
+    {
+        return root;
+    }
+    while(1)
+    {
+        if (seach_node->parent == NULL)
+        {
+            break;
+        }
+        
+        if (seach_node->parent->lchild == seach_node)
+        {
+            seach_node = right_single_rotation(seach_node->parent);
+        }
+        else
+        {
+            seach_node = left_single_rotation(seach_node->parent);
+        }
+    }
+    return seach_node;
+}
+//自顶向下伸展，只保证伸展结点后，node在为根结点或与node值相近的值为根结点
+static mg_splaytree_t *mg_splaytree_splay_root_to_node(mg_splaytree_t *root, mg_splaytree_t *node)
 {
     if (!root || !node)
         return root;
@@ -180,7 +227,7 @@ static mg_splaytree_t *mg_splaytree_splay(mg_splaytree_t *root, mg_splaytree_t *
 
 mg_splaytree_t* mg_splaytree_find(mg_splaytree_t *root, mg_splaytree_t *node)
 {
-    root = mg_splaytree_find(root, node);
+    root = mg_splaytree_splay_node_to_root(root, node);
     return root;
 }
 
@@ -189,7 +236,7 @@ mg_splaytree_t* mg_splaytree_insert(mg_splaytree_t* root, mg_splaytree_t *node)
     if (!node)
         return root;
     int cmp_result = 0;
-    root = mg_splaytree_splay(root, node);
+    root = mg_splaytree_splay_node_to_root(root, node);
     if (!root)
     {
         root = node;
@@ -220,14 +267,14 @@ mg_splaytree_t* mg_splaytree_insert(mg_splaytree_t* root, mg_splaytree_t *node)
     
 }
 
-mg_splaytree_t *mg_splaytree_remove(mg_splaytree_t *root, mg_splaytree_t *node, mg_splaytree_node_free nfree)
+mg_splaytree_t *mg_splaytree_remove(mg_splaytree_t *root, mg_splaytree_t *node, mg_splaytree_node_free *nfree)
 {
     if (!root || !node)
     {
         return root;
     }
     int cmp_result = 0;
-    root = mg_splaytree_splay(root, node);
+    root = mg_splaytree_splay_node_to_root(root, node);
     cmp_result = root->cmp_func(root, node);
     if (cmp_result != 0)
     {
@@ -236,7 +283,7 @@ mg_splaytree_t *mg_splaytree_remove(mg_splaytree_t *root, mg_splaytree_t *node, 
     else
     {
         node->rchild = root;
-        if (root-lchild && root->rchild)
+        if (root->lchild && root->rchild)
         {
             mg_splaytree_t *min = mg_splaytree_min_node(root->rchild);
             min->lchild = root->lchild;
@@ -248,7 +295,7 @@ mg_splaytree_t *mg_splaytree_remove(mg_splaytree_t *root, mg_splaytree_t *node, 
             ((root->lchild == NULL) ? (root = root->rchild) : (root = root->lchild));
         }
     }
-    nfree(node->rchild);
+    (*nfree)(node->rchild);
     return root;
 }
 
