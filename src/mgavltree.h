@@ -28,6 +28,17 @@ struct mg_avltree_node
 #endif
 
 
+#ifndef offsetof
+#define offsetof(TYPE, MEMBER) ((size_t) &((TYPE *)0)->MEMBER)
+#endif
+
+#ifndef container_of
+#define container_of(ptr, type, member) ({ \
+        const typeof( ((type *)0)->member ) *__mptr = (ptr);\
+        (type *)( (char *)__mptr - offsetof(type,member) );})
+#endif
+/*
+#define mgsplaytree_entry(ptr, type, member) container_of(ptr, type, member)
 
 #ifndef offsetof
 #define offsetof(TYPE, MEMBER) ((size_t) &((TYPE *)0)->MEMBER)
@@ -38,7 +49,7 @@ struct mg_avltree_node
         const typeof( ((type *)0)->member ) *__mptr = (ptr);\
         (type *)( (char *)__mptr - offsetof(type,member) );})
 #endif
-
+*/
 #define mgavltree_entry(ptr, type, member) container_of(ptr, type, member)
 
 
