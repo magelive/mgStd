@@ -44,4 +44,10 @@ mgrbtree_t *mgrbtree_search(mgrbtree_t *root, mgrbtree_t *node);
 
 mgrbtree_t *mgrbtree_remove(mgrbtree_t *root, mgrbtree_t *node);
 
+mgrbtree_t *mgrbtree_remove_node(mgrbtree_t *root, mgrbtree_t *node);
+
+mgrbtree_t *mgrbtree_min_node(mgrbtree_t *root);
+
+mgrbtree_t *mgrbtree_max_node(mgrbtree_t *root);
+
 #endif

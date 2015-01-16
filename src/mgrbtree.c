@@ -385,6 +385,12 @@ static mgrbtree_t* __mgrbtree_remove_node_(mgrbtree_t *root, mgrbtree_t *node)
     return root;
 }
 
+mgrbtree_t *mgrbtree_remove_node(mgrbtree_t *root, mgrbtree_t *node)
+{
+    root = __mgrbtree_remove_node_(root, node);
+    return root;
+}
+
 mgrbtree_t *mgrbtree_remove(mgrbtree_t *root, mgrbtree_t *node)
 {
     mgrbtree_t *search_node = mgrbtree_search(root, node);
@@ -393,3 +399,22 @@ mgrbtree_t *mgrbtree_remove(mgrbtree_t *root, mgrbtree_t *node)
     return root;
 }
 
+mgrbtree_t *mgrbtree_min_node(mgrbtree_t *root)
+{
+    mgrbtree *tmp = root;
+    while(tmp->lchild != NilNode)
+    {
+        tmp = tmp->lchild;
+    }
+    return tmp;
+}
+
+mgrbtree_t *mgrbtree_max_node(mgrbtree_t *root)
+{
+    mgrbtree *tmp = root;
+    while(tmp->rchild != NilNode)
+    {
+        tmp = tmp->rchild;
+    }
+    return tmp;
+}
