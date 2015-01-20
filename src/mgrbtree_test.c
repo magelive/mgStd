@@ -88,13 +88,13 @@ int main(int argc, char *argv[])
     printf("\n~~~~~~~~remove~%d~~~~~~\n", del_mrt.data);
     mgrbtree_preorder(root, mrt_op, NULL);
  
-    del_mrt.data = 4;
+    del_mrt.data = 2;
     mgrbtree_init(&del_mrt.node, &mrt_cmp);
     root = mgrbtree_remove(root, &del_mrt.node);
     printf("\n~~~~~~~~remove~%d~~~~~~\n", del_mrt.data);
     mgrbtree_preorder(root, mrt_op, NULL);
     
-    del_mrt.data = 3;
+    del_mrt.data = 5;
     mgrbtree_init(&del_mrt.node, &mrt_cmp);
     root = mgrbtree_remove(root, &del_mrt.node);
     printf("\n~~~~~~~~remove~%d~~~~~~\n", del_mrt.data);

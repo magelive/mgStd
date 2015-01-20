@@ -356,15 +356,21 @@ static mgrbtree_t* __mgrbtree_remove_node_(mgrbtree_t *root, mgrbtree_t *node)
     //将y的颜色记录下来
     mgrbtree_color_t del_color = y->color;
     //将y替换掉node,再将node解除
-    if(y!=node)
+    if(y != node)
     {
         //node->key = y->key;    
         y->parent = node->parent;
         y->lchild = node->lchild;
         y->rchild = node->rchild;
         y->color  = node->color;
-
-        (MG_RBTREE_IS_LCHILD(node) ? (node->parent->lchild = y) : (node->parent->rchild = y));
+        if (node->parent)
+        {
+            (MG_RBTREE_IS_LCHILD(node) ? (node->parent->lchild = y) : (node->parent->rchild = y));
+        }
+        else
+        {
+            root = y;
+        }
         if (node->lchild) node->lchild->parent = y;
         if (node->rchild) node->rchild->parent = y;
         
