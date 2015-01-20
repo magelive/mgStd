@@ -68,12 +68,12 @@ void mrt_op(mgrbtree_t *node, void *arg)
 
 int main(int argc, char *argv[])
 {
-    int a[10] = {1,2,3,4,5,6,7,8,9, 10};
-    mrt m[10];
+    int a[4] = {1,4,8,265};//5,6,7,8,9, 10};
+    mrt m[4];
     mrt del_mrt;
     int i;
     mgrbtree_t *root = NULL;
-    for (i = 0; i < 10; i ++)
+    for (i = 0; i < 4; i ++)
     {
         m[i].data = a[i];
         mgrbtree_init(&(m[i].node), &mrt_cmp);
@@ -82,13 +82,27 @@ int main(int argc, char *argv[])
         printf("\n\n");
     }
     
-    del_mrt.data = 8;
+    del_mrt.data = 1;
     mgrbtree_init(&del_mrt.node, &mrt_cmp);
     root = mgrbtree_remove(root, &del_mrt.node);
-    
     printf("\n~~~~~~~~remove~%d~~~~~~\n", del_mrt.data);
     mgrbtree_preorder(root, mrt_op, NULL);
  
+    del_mrt.data = 4;
+    mgrbtree_init(&del_mrt.node, &mrt_cmp);
+    root = mgrbtree_remove(root, &del_mrt.node);
+    printf("\n~~~~~~~~remove~%d~~~~~~\n", del_mrt.data);
+    mgrbtree_preorder(root, mrt_op, NULL);
+    del_mrt.data = 8;
+    mgrbtree_init(&del_mrt.node, &mrt_cmp);
+    root = mgrbtree_remove(root, &del_mrt.node);
+    printf("\n~~~~~~~~remove~%d~~~~~~\n", del_mrt.data);
+    mgrbtree_preorder(root, mrt_op, NULL);
+    del_mrt.data = 265;
+    mgrbtree_init(&del_mrt.node, &mrt_cmp);
+    root = mgrbtree_remove(root, &del_mrt.node);
+    printf("\n~~~~~~~~remove~%d~~~~~~\n", del_mrt.data);
+    mgrbtree_preorder(root, mrt_op, NULL);
     return 0;
 
 }

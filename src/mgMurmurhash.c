@@ -93,18 +93,18 @@ uint32_t mgMurmurhash32 ( const void * key, int len, unsigned int seed )
 
 #define FORCE_INLINE inline __attribute__((always_inline))
 
-inline uint32_t rotl32 ( uint32_t x, int8_t r )
+static inline uint32_t mg_rotl32(uint32_t x, int8_t r )
 {
       return (x << r) | (x >> (32 - r));
 }
 
-inline uint64_t rotl64 ( uint64_t x, int8_t r )
+static inline uint64_t mg_rotl64 ( uint64_t x, int8_t r )
 {
       return (x << r) | (x >> (64 - r));
 }
 
-#define ROTL32(x,y) rotl32(x,y)
-#define ROTL64(x,y) rotl64(x,y)
+#define ROTL32(x,y) mg_rotl32(x,y)
+#define ROTL64(x,y) mg_rotl64(x,y)
 
 #define BIG_CONSTANT(x) (x##LLU)
 
