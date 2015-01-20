@@ -44,7 +44,7 @@ static mgrbtree_t* mgrbtree_left_rote(mgrbtree_t *root, mgrbtree_t *node)
     node->rchild = rchild->lchild;
 
     if (rchild->lchild != NilNode)
-        rchild->lchild->parent = rchild;
+        rchild->lchild->parent = node;
 
     rchild->parent = node->parent;
 
@@ -99,7 +99,7 @@ static mgrbtree_t *mgrbtree_right_rote(mgrbtree_t *root, mgrbtree_t *node)
 
 static mgrbtree_t *fixup_insert_mgrbtree_t(mgrbtree_t *root, mgrbtree_t *node)
 {
-    mgrbtree_t *uncle; 
+    mgrbtree_t *uncle = NilNode; 
     while(node->parent != NilNode && node->parent->color == mg_red)
     {
         if (MG_RBTREE_IS_LCHILD(node->parent))
@@ -117,7 +117,8 @@ static mgrbtree_t *fixup_insert_mgrbtree_t(mgrbtree_t *root, mgrbtree_t *node)
                 if (MG_RBTREE_IS_RCHILD(node))
                 { //case 2
                     mgrbtree_t *np = node->parent;
-                    root = mgrbtree_left_rote(root, np);   
+                    root = mgrbtree_left_rote(root, np);  
+                    node = node->lchild;
                 }
                 // case 3
                 node->parent->color = mg_black;
@@ -145,6 +146,7 @@ static mgrbtree_t *fixup_insert_mgrbtree_t(mgrbtree_t *root, mgrbtree_t *node)
                     { // case5
                         mgrbtree_t *np = node->parent;
                         root = mgrbtree_right_rote(root, np);
+                        node = node->rchild;
                     }
                     // case6
                     node->parent->color = mg_black;
@@ -191,28 +193,6 @@ mgrbtree_t *mgrbtree_insert(mgrbtree_t *root, mgrbtree_t *node)
     return root;
 }
 
-/*
-int delete_from_mgrbtree_t(mgrbtree_t &T, int key)
-{
-    mgrbtree_t z = NilNode;
-
-    z = find_mgrbtree_t(T, key);
-    if(z == NilNode)
-    {
-        return 0;
-    }
-    else
-    {
-        z = delete_from_mgrbtree_t(T, z);
-        free(z);
-        printf("delete the key:%d\n", key);
-        pre_order_mgrbtree_t(T);
-
-        return 1;
-    }
-}
-*/
-
 mgrbtree_t *mgrbtree_search(mgrbtree_t *root, mgrbtree_t *node)
 {
     mgrbtree_t *search_node = root;
@@ -235,94 +215,102 @@ mgrbtree_t *mgrbtree_search(mgrbtree_t *root, mgrbtree_t *node)
     return search_node;
 }
 
-static mgrbtree_t* mgrbtree_fixup_remove(mgrbtree_t *root, mgrbtree_t *node)
+static mgrbtree_t* mgrbtree_fixup_remove(mgrbtree_t *root, mgrbtree_t *node_parent, mgrbtree_t *node)
 {
     mgrbtree_t *brother = NilNode;
-    while(root !=node && node->color == mg_black)
-    { // node为重黑结点，~
-        if(MG_RBTREE_IS_LCHILD(node))//node == node->parent->lchild)
+    if (node) node_parent = node->parent;
+    while(root !=node && (node == NilNode || node->color == mg_black))
+    { // node为重黑结点
+        //if(MG_RBTREE_IS_LCHILD(node))//node == node->parent->lchild)
+        if (node_parent->lchild == node)
         { 
-            brother = node->parent->rchild; // brother为node的兄弟~
+            brother = node_parent->rchild; // brother为node的兄弟~
+
             if (brother)
             {
                 if(brother->color == mg_red)
                 { // case 1
-                    node->parent->color = mg_red;
+                    node_parent->color = mg_red;
                     brother->color = mg_black;
-                    root = mgrbtree_left_rote(root, node->parent);
+                    root = mgrbtree_left_rote(root, node_parent);
                 }//if(brother->color == mg_red)
-                else if(brother->rchild && brother->rchild->color == mg_black && 
-                        brother->lchild && brother->lchild->color == mg_black)
+                else if((!brother->rchild || brother->rchild->color == mg_black) && 
+                        (!brother->lchild || brother->lchild->color == mg_black))
                 { // case 2
                     brother->color = mg_red;
-                    node = node->parent;
+                    node = node_parent;
+                    node_parent = node->parent;
                 }//else if(brother->rchild && ...)
                 else
                 {
-                    if(brother->rchild && brother->rchild->color == mg_black)
+                    if(!brother->rchild || brother->rchild->color == mg_black)
                     { // case 3 -> case4
                         brother->color = mg_red;
                         if (brother->lchild) brother->lchild->color = mg_black;
                         root = mgrbtree_right_rote(root, brother);
-                        brother = node->parent->rchild;
+                        brother = node_parent->rchild;
                     }//if(brother->rchild && ...)
                     // case 4
-                    if (brother->rchild) brother->rchild->color = mg_red;
-                    brother->color = node->parent->color;
-                    node->parent->color = mg_black;
-                    root = mgrbtree_left_rote(root, node->parent);
+                    if (brother->rchild) brother->rchild->color = mg_black;//mg_red;
+                    brother->color = node_parent->color;
+                    node_parent->color = mg_black;
+                    root = mgrbtree_left_rote(root, node_parent);
                     node = root;
+                    node_parent = node->parent;
                 }//else
             }//if (brother)
         } // if(node == node->parent->lchild)
         else
         { // node为node paret右孩子的情况~
-            brother = node->parent->lchild;
+            brother = node_parent->lchild;
             if (brother)
             {
                 if(brother->color == mg_red)
                 { // case 1'
-                    node->parent->color = mg_red;
+                    node_parent->color = mg_red;
                     brother->color = mg_black;
-                    root = mgrbtree_right_rote(root, node->parent);
+                    root = mgrbtree_right_rote(root, node_parent);
                 }
-                else if(brother->lchild && brother->lchild->color == mg_black && 
-                        brother->rchild && brother->rchild->color == mg_black)
+                else if((!brother->lchild || brother->lchild->color == mg_black) && 
+                        (!brother->rchild || brother->rchild->color == mg_black))
                 { // case 2'
                     brother->color = mg_red;
-                    node = node->parent;
+                    node = node_parent;
+                    node_parent = node->parent;
                 }
                 else
                 {
-                    if(brother->lchild && brother->lchild->color == mg_black)
+                    if(!brother->lchild || brother->lchild->color == mg_black)
                     { // case3'
                         brother->color = mg_red;
-                        brother->rchild->color = mg_black;
+                        if (brother->rchild) brother->rchild->color = mg_black;
                         root = mgrbtree_left_rote(root, brother);
-                        brother = node->parent->lchild;
+                        brother = node_parent->lchild;
                     }
                     // case4'
                     if (brother->lchild) brother->lchild->color = mg_black;
-                    brother->color = node->parent->color;
-                    node->parent->color = mg_black;
-                    root = mgrbtree_right_rote(root, node->parent);
+                    brother->color = node_parent->color;
+                    node_parent->color = mg_black;
+                    root = mgrbtree_right_rote(root, node_parent);
                     node = root;
+                    node_parent = node->parent;
                 }//else
             }//if (brother)
         }//  else{ // node为p[node]右孩子的情况~
     } // while(T!=node && node->color == mg_black)
 
-    node->color = mg_black; // 或node为红黑结点~，或为根结点~
+    if (node) node->color = mg_black; // 或node为红黑结点~，或为根结点~
     return root;
 }
 
 
 static mgrbtree_t* __mgrbtree_remove_node_(mgrbtree_t *root, mgrbtree_t *node)
 {
-    if (node == root)
-        return NilNode;
+    if (node == NilNode || root == NilNode)
+        return root;
     // y为需要删除的指针; x为y的后继指针，~
     mgrbtree_t *x = NilNode;
+    mgrbtree_t *x_parent = NilNode;
     mgrbtree_t *y = NilNode;
 
     if(node->lchild == NilNode || node->rchild == NilNode)
@@ -352,14 +340,17 @@ static mgrbtree_t* __mgrbtree_remove_node_(mgrbtree_t *root, mgrbtree_t *node)
     if(y->parent == NilNode)
     {// y即为根结点
         root = x;
+        x_parent = NilNode;
     }
     else if(MG_RBTREE_IS_LCHILD(y))//(y->parent->lchild == y)
     {
         y->parent->lchild = x;
+        x_parent = y->parent;
     }
     else
     {
         y->parent->rchild = x;
+        x_parent = y->parent;
     }
 
     //将y的颜色记录下来
@@ -380,7 +371,8 @@ static mgrbtree_t* __mgrbtree_remove_node_(mgrbtree_t *root, mgrbtree_t *node)
         mgrbtree_init(node, node->cmp_func);
     }
     
-    if(del_color == mg_black && x!= NilNode) root = mgrbtree_fixup_remove(root, x);
+    //if(del_color == mg_black && x!= NilNode) root = mgrbtree_fixup_remove(root, x);
+    if(del_color == mg_black) root = mgrbtree_fixup_remove(root, x_parent, x);
 
     return root;
 }
@@ -401,7 +393,9 @@ mgrbtree_t *mgrbtree_remove(mgrbtree_t *root, mgrbtree_t *node)
 
 mgrbtree_t *mgrbtree_min_node(mgrbtree_t *root)
 {
-    mgrbtree *tmp = root;
+    if (!root)
+        return NilNode;
+    mgrbtree_t *tmp = root;
     while(tmp->lchild != NilNode)
     {
         tmp = tmp->lchild;
@@ -411,7 +405,9 @@ mgrbtree_t *mgrbtree_min_node(mgrbtree_t *root)
 
 mgrbtree_t *mgrbtree_max_node(mgrbtree_t *root)
 {
-    mgrbtree *tmp = root;
+    if (!root)
+        return NilNode;
+    mgrbtree_t *tmp = root;
     while(tmp->rchild != NilNode)
     {
         tmp = tmp->rchild;
