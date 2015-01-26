@@ -38,6 +38,8 @@ void mgrbtree_init(mgrbtree_t *node, mgrbtree_cmp_func *cmp_func);
 
 void mgrbtree_preorder(mgrbtree_t *root, mg_rbtree_op opfunc, void *arg);
 
+void mgrbtree_postorder(mgrbtree_t *root, mg_rbtree_op opfunc, void *arg);
+
 mgrbtree_t *mgrbtree_insert(mgrbtree_t *root, mgrbtree_t *node);
 
 mgrbtree_t *mgrbtree_search(mgrbtree_t *root, mgrbtree_t *node);

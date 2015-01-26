@@ -28,8 +28,21 @@ void mgrbtree_preorder(mgrbtree_t *root, mg_rbtree_op opfunc, void *arg)
     if(root != NULL)
     {
         opfunc(root, arg);
-        mgrbtree_preorder(root->lchild, opfunc, arg);
-        mgrbtree_preorder(root->rchild, opfunc, arg);
+        if (root)
+        {
+            mgrbtree_preorder(root->lchild, opfunc, arg);
+            mgrbtree_preorder(root->rchild, opfunc, arg);
+        }
+    }
+}
+
+void mgrbtree_postorder(mgrbtree_t *root, mg_rbtree_op opfunc, void *arg)
+{
+    if(root != NULL)
+    {
+        mgrbtree_postorder(root->lchild, opfunc, arg);
+        mgrbtree_postorder(root->rchild, opfunc, arg);
+        opfunc(root, arg);
     }
 }
 
