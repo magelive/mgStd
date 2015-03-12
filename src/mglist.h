@@ -11,6 +11,8 @@ typedef struct mglist_head
     struct mglist_head *next;
 }MG_LIST;
 
+typedef struct mglist_head  mglist_t;
+
 #define MG_LIST_POISON1  NULL
 #define MG_LIST_POISON2  NULL
 
@@ -22,6 +24,7 @@ typedef struct mglist_head
 
 /*******************************************************/
 
+#define mglist_init INIT_MG_LIST_HEAD
 
 void INIT_MG_LIST_HEAD(struct mglist_head *list);
 
