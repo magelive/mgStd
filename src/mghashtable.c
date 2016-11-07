@@ -10,7 +10,6 @@
 
 #define MURMURHASH_SEED 16
 
-
 typedef struct mghashtable_line_node
 {
     void    *key;

@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+
 #include "mgmd5.h"
 
 void hmac_md5(unsigned char *output, 
@@ -30,6 +31,7 @@ void hmac_md5(unsigned char *output,
         k_ipad[i] = hmac_key[i] ^ 0x36;
         k_opad[i] = hmac_key[i] ^ 0x5c;
     }
+
     MG_MD5_CTX context1;
     mg_MD5Init(&context1);
     mg_MD5Update(&context1, k_ipad, 64);
