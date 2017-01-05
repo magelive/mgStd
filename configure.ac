@@ -3,13 +3,16 @@
 
 AC_PREREQ([2.0])
 AC_INIT([mgStd], [1.0], [magelive.jx@foxmail.com])
+AM_INIT_AUTOMAKE([-Wall -Werror foreign])
 AC_CONFIG_SRCDIR([src])
 AC_CONFIG_HEADERS([config.h])
+
+m4_ifdef([AM_PROG_AR], [AM_PROG_AR])
 
 # Checks for programs.
 AC_PROG_CC
 
-AM_INIT_AUTOMAKE
+#AM_INIT_AUTOMAKE
 AC_PROG_LIBTOOL
 
 # Checks for libraries.
