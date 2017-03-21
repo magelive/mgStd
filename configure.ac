@@ -9,6 +9,11 @@ AC_CONFIG_HEADERS([config.h])
 
 m4_ifdef([AM_PROG_AR], [AM_PROG_AR])
 
+AC_ARG_ENABLE(debug, AS_HELP_STRING([--enable-debug], [enable debug mode @<:@default=no@:>@]), [], [enable_debug=no])
+AS_IF([test "x$enable_debug" = "xyes"], [AC_DEFINE([DEBUG], [1], [Debugging mode enable])], 
+		[AC_DEFINE([NDEBUG], [1], [Debugging and assertions disable])])
+AM_CONDITIONAL([DEBUG], [test x$enable_debug = x"yes"])
+
 # Checks for programs.
 AC_PROG_CC
 
