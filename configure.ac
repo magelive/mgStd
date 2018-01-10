@@ -15,7 +15,7 @@ AS_IF([test "x$enable_debug" = "xyes"], [AC_DEFINE([DEBUG], [1], [Debugging mode
 AM_CONDITIONAL([DEBUG], [test x$enable_debug = x"yes"])
 
 # Checks for programs.
-AC_PROG_CC
+#AC_PROG_CC
 
 #AM_INIT_AUTOMAKE
 AC_PROG_LIBTOOL
@@ -30,6 +30,8 @@ AC_CHECK_HEADERS([stdio.h stdlib.h strings.h string.h stddef.h stdint.h sys/time
 
 # Checks for library functions.
 AC_CHECK_FUNCS([bzero memset])
+
+AC_SUBST([CFLAGS])
 
 AC_CONFIG_FILES([Makefile
                  src/Makefile])
