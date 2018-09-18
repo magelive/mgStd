@@ -1,7 +1,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+
 #include "mgfastsort.h"
+#include "mgtime.h"
 
 //#ifdef _MG_FAST_SORT_TEST_
 
@@ -54,7 +56,8 @@ static void print_list(fstn *list, int n)
 int main()
 {
     fstn *test_list = (fstn *)malloc(sizeof(fstn) * 10);
-    test_list[0].key = 2;
+	/*
+    test_list[0].key = 12;
     test_list[1].key = 4;
     test_list[2].key = 5;
     test_list[3].key = 3;
@@ -64,12 +67,23 @@ int main()
     test_list[7].key = 1;
     test_list[8].key = 7;
     test_list[9].key = 10;
-
-    print_list(test_list, 10);
-
-    mgfastsort(fast_sort_test_cmp, fast_sort_test_swap, (void *)(test_list), 2, 7, sizeof(fstn));
-
-    print_list(test_list, 10);
+	*/
+	int i, j, count = 0;
+	for (j = 0; j < 1000000; j ++ ) {
+		for (i = 0; i < 10; i++) {
+			test_list[i].key = mg_get_rand_num(0, 100);
+		}
+		print_list(test_list, 10);
+		mgfastsort(fast_sort_test_cmp, fast_sort_test_swap, (void *)(test_list), 0, 9, sizeof(fstn));
+		print_list(test_list, 10);
+		for ( i = 0; i < 9; i ++ ) {
+			if (test_list[i].key > test_list[i+1].key) {
+				count ++;
+				break;
+			}
+		}
+	}
+	printf("count = %d\n", count);
     return 0;
 }
 //#endif

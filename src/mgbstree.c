@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#include "mgBstree.h"
+#include "mgbstree.h"
 
 void MG_BSTREE_INIT_NODE(MG_BS_TREE *node, mg_BStree_cmp_func *cmp)
 {

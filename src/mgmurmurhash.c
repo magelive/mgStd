@@ -1,5 +1,5 @@
 
-#include "mgMurmurhash.h"
+#include "mgmurmurhash.h"
 
 // 64-bit hash for 64-bit platforms
 uint64_t mgMurmurhash64 ( const void * key, int len, unsigned int seed )

@@ -1,4 +1,4 @@
-#include "LiteZip.h"
+#include "mglite_zip.h"
 #ifdef WIN32
 #define IDS_OK        20
 #define IDS_UNKNOWN   21

@@ -3,7 +3,7 @@
 #include <stdint.h>
 #include <unistd.h>
 
-#include "mgMurmurhash.h"
+#include "mgmurmurhash.h"
 #include "mglist.h"
 #include "mgtime.h"
 

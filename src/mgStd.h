@@ -10,15 +10,15 @@
 #include <mgsha512.h>
 #include <mgmd5.h>
 #include <mgsha1.h>
-#include <LiteZip.h>
-#include <mgStd.h>
+#include <mglite_zip.h>
+#include <mglite_unzip.h>
 #include <mgcrc32.h>
 #include <mgfastsort.h>
 #include <mgsplaytree.h>
 #include <mghmac_md5.h>
-#include <mgMurmurhash.h>
-#include <LiteUnzip.h>
-#include <mgBstree.h>
+#include <mgmurmurhash.h>
+#include <mgbstree.h>
+#include <mgstack.h>
 #include <mgtime.h>
 #include <mgsha256.h>
 

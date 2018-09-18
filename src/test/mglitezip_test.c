@@ -3,8 +3,8 @@
 #include <sys/types.h>
 #include <string.h>
 #include <strings.h>
-#include "LiteZip.h"
-#include "LiteUnzip.h"
+#include "mglite_zip.h"
+#include "mglite_unzip.h"
 
 void print_hex(u_int8_t *data, u_int64_t len)
 {

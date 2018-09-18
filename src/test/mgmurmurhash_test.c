@@ -2,7 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
-#include "mgMurmurhash.h"
+#include "mgmurmurhash.h"
 #include "mgtime.h"
 
 int main(int argc, char** argv)

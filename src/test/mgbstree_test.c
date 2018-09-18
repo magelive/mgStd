@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#include "mgBstree.h"
+#include "mgbstree.h"
 
 typedef struct mgBstree_test
 {
