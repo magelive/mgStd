@@ -3,7 +3,7 @@
 
 AC_PREREQ([2.0])
 AC_INIT([mgStd], [1.0], [magelive.jx@foxmail.com])
-AM_INIT_AUTOMAKE([-Wall -Werror foreign])
+AM_INIT_AUTOMAKE([-Wall -Werror foreign subdir-objects])
 AC_CONFIG_SRCDIR([src])
 AC_CONFIG_HEADERS([config.h])
 
