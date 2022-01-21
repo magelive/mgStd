@@ -8,6 +8,8 @@
  #include <sys/timerfd.h>
 #include "mainloop.h"
 
+#define USE_EPOLL
+
 #define mainloop_malloc malloc
 #define mainloop_free free
 
@@ -25,7 +27,7 @@ typedef enum {
 }mainloop_data_type;
 
 typedef struct mainloop_data {
-    struct mainloop_data *next, *prev;
+    struct mainloop_data *next;
     int fd;
     mainloop_data_type type;
     events_t events;
@@ -39,83 +41,6 @@ typedef struct mainloop_data {
 
 static mainloop_data_t *mainloop_data_head = NULL;
 static mainloop_data_t *mainloop_free_head = NULL;
-static uint32_t mainloop_free_count = 0;
-#define MAINLOOP_FREE_COUNT_MAX 8
-
-void mainloop_data_add(mainloop_data_t *data)
-{
-    if (mainloop_data_head) {
-        data->next = mainloop_data_head;
-        mainloop_data_head->prev = data;
-    }
-    data->prev = NULL;
-    mainloop_data_head = data;
-}
-
-void mainloop_free_add(mainloop_data_t *data)
-{
-    if (mainloop_free_count >= MAINLOOP_FREE_COUNT_MAX) {
-        mainloop_free(data);
-    }
-
-    if (mainloop_free_head) {
-        data->next = mainloop_free_head;
-        mainloop_data_head->prev = data;
-    }
-    data->prev = NULL;
-    mainloop_free_head = data;
-    mainloop_free_count ++;
-}
-
-void mainloop_data_remove(mainloop_data_t *data)
-{
-    if (!data || !mainloop_data_head) {
-        return;
-    }
-    if (mainloop_data_head == data) {
-        mainloop_data_head = mainloop_data_head->next;
-        if (mainloop_data_head)
-            mainloop_data_head->prev = NULL;
-    } else {
-        if (data->prev)
-            data->prev->next = data->next;
-        if (data->next)
-            data->next->prev = data->prev;
-    }
-    mainloop_free_count --;
-    data->prev = data->next = NULL;
-}
-
-void mainloop_free_remove(mainloop_data_t *data)
-{
-    if (!data || !mainloop_free_head) {
-        return;
-    }
-
-    if (mainloop_free_head == data) {
-        mainloop_free_head = mainloop_free_head->next;
-        if (mainloop_free_head)
-            mainloop_free_head->prev = NULL;
-    } else {
-        if (data->prev)
-            data->prev->next = data->next;
-        if (data->next)
-            data->next->prev = data->prev;
-    }
-    data->prev = data->next = NULL;
-}
-
-static mainloop_data_t *get_mainloop_data_by_fd(int fd)
-{
-    mainloop_data_t *data = mainloop_data_head;
-    while(data != NULL) {
-        if (data->fd == fd) {
-            break;
-        }
-        data = data->next;
-    }
-    return data;
-}
 
 static int mainloop_timeout_process(mainloop_data_t *data)
 {
@@ -203,9 +128,7 @@ static int epoll_run()
                 data->event_callback(data->fd, e, data->user_data);
                 break;
             case TIMER:
-                printf("TIMER:.......\n");
                 if (!(e & EVENT_ERR)) {
-                    printf("........TIMER no err\n");
                     mainloop_timeout_process(data);
                 }
                 break;
@@ -341,8 +264,12 @@ int mainloop_add_fd(int fd, events_t events,
     if (fd < 0 || !callback) {
         return -EINVAL;
     }
-    mainloop_data_t *data = mainloop_free_head;
-    mainloop_free_remove(data);
+    mainloop_data_t *data = NULL;
+    if (mainloop_free_head) {
+        data = mainloop_free_head;
+        mainloop_free_head = mainloop_free_head->next;
+    }
+
     if (!data) {
         data = mainloop_malloc(sizeof(mainloop_data_t));
         if (!data) {
@@ -357,7 +284,8 @@ int mainloop_add_fd(int fd, events_t events,
     data->destroy_callback = destroy;
     data->user_data = user_data;
 
-    mainloop_data_add(data);
+    data->next = mainloop_data_head;
+    mainloop_data_head = data;
 
     return mainloop_platform_add_fd(events, data);
 }
@@ -367,12 +295,17 @@ int mainloop_modify_fd(int fd, events_t events)
     if (fd < 0) {
         return -EINVAL;
     }
-    printf("modify fd = %d\n", fd);
-    mainloop_data_t *data = get_mainloop_data_by_fd(fd);
+    mainloop_data_t *data = mainloop_data_head;
+    while(data) {
+        if (data->fd == fd) {
+            break;
+        }
+        data = data->next;
+    }
+
     if (!data) {
         return -ENXIO;
     }
-    printf(".....\n");
     return mainloop_platform_modify_fd(events, data);
 }
 
@@ -381,7 +314,15 @@ int mainloop_remove_fd(int fd)
     if (fd < 0) {
         return -EINVAL;
     }
-    mainloop_data_t *data = get_mainloop_data_by_fd(fd);
+    mainloop_data_t *data = mainloop_data_head, *prev = NULL;
+    while(data) {
+        if (data->fd == fd) {
+            break;
+        }
+        prev = data; 
+        data = data->next;
+    }
+    
     if (!data) {
         return -ENXIO;
     }
@@ -395,8 +336,13 @@ int mainloop_remove_fd(int fd)
         data->destroy_callback(data->user_data);
     }
     
-    mainloop_data_remove(data);
-    mainloop_free_add(data);
+    if (data == mainloop_data_head) {
+        mainloop_data_head = mainloop_data_head->next;
+    } else {
+        prev->next = data->next;
+    }
+    data->next = mainloop_free_head;
+    mainloop_free_head = data;
     return ret;
 }
 
@@ -406,7 +352,6 @@ int mainloop_init()
     int i = 0;
     mainloop_data_head = NULL;
     mainloop_free_head = NULL;
-    mainloop_free_count = 0;
     mainloop_terminate = 0;
 
 #ifdef USE_EPOLL
@@ -486,7 +431,7 @@ static inline int timeout_set(int fd, uint32_t msec)
     return timerfd_settime(fd, 0, &itimer, NULL);
 }
 
-int mainloop_add_timeout(uint32_t msec, 
+int mainloop_add_timeout(int msec, 
                         mainloop_timeout_func callback,
                         mainloop_destroy_func destroy,
                         void *user_data)
@@ -500,7 +445,6 @@ int mainloop_add_timeout(uint32_t msec,
         return -EIO;
     }
     if (msec > 0) {
-        printf("msec = %d\n", msec);
         if (timeout_set(fd, msec) < 0) {
             close(fd);
             return -EIO;
@@ -508,7 +452,8 @@ int mainloop_add_timeout(uint32_t msec,
     }
 
     mainloop_data_t *data = mainloop_free_head;
-    mainloop_free_remove(data);
+    if (mainloop_free_head)
+        mainloop_free_head = mainloop_free_head->next;
     if (!data) {
         data = mainloop_malloc(sizeof(mainloop_data_t));
         if (!data) {
@@ -525,19 +470,19 @@ int mainloop_add_timeout(uint32_t msec,
     events_t event = EVENT_IN;    
 
     ret = mainloop_platform_add_fd(event, data);
-
     if (ret < 0) {
-        mainloop_free_add(data);
         close(fd);
         return ret;
     }
-    mainloop_data_add(data);
+    data->next = mainloop_data_head;
+    mainloop_data_head = data;
     return fd;
 }
 
-int mainloop_modify_timeout(int fd, uint32_t msec)
+int mainloop_modify_timeout(int fd, int msec)
 {
-    if (msec > 0 && timeout_set(fd, msec) < 0) {
+    if (msec <= 0) msec = 1;
+    if (timeout_set(fd, msec) < 0) {
         return -EIO;
     }
     events_t event = EVENT_IN;
